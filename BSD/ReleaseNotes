@@ -41,6 +41,11 @@ Changes from the previous (20080728) version
 8. The license of the reader is now compatible with ParaView License
    v1.2, except for the GPLed materials under the GPL subdirectory.
 
+9. Fixed compressed lagrangian positions not being detected.
+
+10. Now warns about the existence of different time directories with
+   the same time value and removes the duplicates (e.g. "0" and "0.000").
+
 Installation
 ============
 

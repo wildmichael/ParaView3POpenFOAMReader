@@ -25,7 +25,7 @@
 // * Minor performance enhancements
 // by Philippose Rajan (sarith@rocketmail.com)
 
-// version 2008-08-30
+// version 2008-09-02
 
 // Hijack the CRC routine of zlib to omit CRC check for gzipped files
 // (on OSes other than Windows where the mechanism doesn't work due
@@ -3328,7 +3328,8 @@ void vtkOpenFOAMReaderPrivate::LocateLagrangianClouds(
         const vtkStdString subCloudFullPath(timePath + "/" + subCloudName);
         // lagrangian positions. there are many concrete class names
         // e. g. Cloud<parcel>, basicKinematicCloud etc.
-        if(io.open(subCloudFullPath + "/positions")
+        if((io.open(subCloudFullPath + "/positions")
+          || io.open(subCloudFullPath + "/positions.gz"))
           && io.className().find("Cloud") != vtkStdString::npos
           && io.objectName() == "positions")
           {
@@ -3355,8 +3356,10 @@ void vtkOpenFOAMReaderPrivate::LocateLagrangianClouds(
       vtkFoamIOobject io(this->CasePath);
       const vtkStdString cloudName(this->RegionPrefix() + "lagrangian");
       const vtkStdString cloudFullPath(timePath + "/" + cloudName);
-      if(io.open(cloudFullPath + "/positions")
-        && io.className() == "Cloud" && io.objectName() == "positions")
+      if((io.open(cloudFullPath + "/positions")
+        || io.open(cloudFullPath + "/positions.gz"))
+        && io.className().find("Cloud") != vtkStdString::npos
+	&& io.objectName() == "positions")
         {
         const vtkStdString cloudPath(this->RegionName + "/lagrangian");
         if(this->Parent->LagrangianPaths->LookupValue(cloudPath) == -1)
@@ -3788,13 +3791,38 @@ bool vtkOpenFOAMReaderPrivate::ListTimeDirectoriesByInstances()
       }
     }
   test->Delete();
+
   this->TimeValues->Squeeze();
   this->TimeNames->Squeeze();
 
-  // sort the detected time directories and set as timesteps
   if(this->TimeValues->GetNumberOfTuples() > 1)
     {
+    // sort the detected time directories
     vtkSortDataArray::Sort(this->TimeValues, this->TimeNames);
+
+    // if there are duplicated timeValues found, remove duplicates
+    // (e.g. "0" and "0.000")
+    for(int timeI = 1; timeI < this->TimeValues->GetNumberOfTuples(); timeI++)
+      {
+      // compare by exact match
+      if(this->TimeValues->GetValue(timeI - 1)
+        == this->TimeValues->GetValue(timeI))
+	{
+	vtkWarningMacro(<<"Different time directories with the same time value "
+          << this->TimeNames->GetValue(timeI - 1).c_str() << " and "
+          << this->TimeNames->GetValue(timeI).c_str() << " found. "
+          << this->TimeNames->GetValue(timeI).c_str() << " will be ignored.");
+        this->TimeValues->RemoveTuple(timeI);
+	// vtkStringArray does not have RemoveTuple()
+	for(int timeJ = timeI + 1; timeJ < this->TimeNames->GetNumberOfTuples();
+          timeJ++)
+	  {
+          this->TimeNames->SetValue(timeJ - 1,
+	    this->TimeNames->GetValue(timeJ));
+          }
+	this->TimeNames->Resize(this->TimeNames->GetNumberOfTuples() - 1);
+        }
+      }
     }
   else if(this->TimeValues->GetNumberOfTuples() == 0)
     {
@@ -7517,16 +7545,23 @@ int vtkOpenFOAMReader::RequestInformation(vtkInformation *vtkNotUsed(request),
     return 0;
     }
 
-  if(this->Parent == this && (*this->FileNameOld != vtkStdString(this->FileName)
+  if(this->Parent == this && (*this->FileNameOld != this->FileName
     || this->ListTimeStepsByControlDict != this->ListTimeStepsByControlDictOld)
     || this->Refresh)
     {
-    // clear selections
-    this->CellDataArraySelection->RemoveAllArrays();
-    this->PointDataArraySelection->RemoveAllArrays();
-    this->LagrangianDataArraySelection->RemoveAllArrays();
-    this->PatchDataArraySelection->RemoveAllArrays();
+    // retain selection status when just refreshing a case
+    if(*this->FileNameOld != this->FileName)
+      {
+      // clear selections
+      this->CellDataArraySelection->RemoveAllArrays();
+      this->PointDataArraySelection->RemoveAllArrays();
+      this->LagrangianDataArraySelection->RemoveAllArrays();
+      this->PatchDataArraySelection->RemoveAllArrays();
+      }
 
+    // Reset NumberOfReaders here so that the variable will not be
+    // reset unwantedly when MakeInformationVector() is called from
+    // vtkPOpenFOAMReader
     this->NumberOfReaders = 0;
 
     if(!this->MakeInformationVector(outputVector, vtkStdString(""))

@@ -19,7 +19,7 @@
 =========================================================================*/
 // Copyright (c) 2008 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
 // All rights reserved.
-// Date: 2008-08-31
+// Date: 2008-09-02
 
 #include "vtkPOpenFOAMReader.h"
 
@@ -90,21 +90,24 @@ int vtkPOpenFOAMReader::RequestInformation(vtkInformation *request,
     return 0;
     }
 
-  if(*this->Superclass::FileNameOld != vtkStdString(this->Superclass::FileName)
+  if(*this->Superclass::FileNameOld != this->Superclass::FileName
     || this->Superclass::ListTimeStepsByControlDict
     != this->Superclass::ListTimeStepsByControlDictOld
     || this->Superclass::Refresh)
     {
-    *this->Superclass::FileNameOld = vtkStdString(this->FileName);
+    // retain selection status when just refreshing a case
+    if(*this->Superclass::FileNameOld != this->Superclass::FileName)
+      {
+      // clear selections
+      this->Superclass::CellDataArraySelection->RemoveAllArrays();
+      this->Superclass::PointDataArraySelection->RemoveAllArrays();
+      this->Superclass::LagrangianDataArraySelection->RemoveAllArrays();
+      this->Superclass::PatchDataArraySelection->RemoveAllArrays();
+      }
 
-    // clear prior case information
+    *this->Superclass::FileNameOld = vtkStdString(this->FileName);
     this->Superclass::Readers->RemoveAllItems();
     this->Superclass::NumberOfReaders = 0;
-
-    this->Superclass::CellDataArraySelection->RemoveAllArrays();
-    this->Superclass::PointDataArraySelection->RemoveAllArrays();
-    this->Superclass::LagrangianDataArraySelection->RemoveAllArrays();
-    this->Superclass::PatchDataArraySelection->RemoveAllArrays();
 
     vtkMultiProcessController *ctrl
       = vtkMultiProcessController::GetGlobalController();
