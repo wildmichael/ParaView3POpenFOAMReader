@@ -1,0 +1,82 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | Copyright held by original authors.
+#    \\/     M anipulation  |
+#-------------------------------------------------------------------------------
+# License
+#     OpenFOAM is free software; you can redistribute it and/or modify it
+#     under the terms of the GNU General Public License as published by the
+#     Free Software Foundation; either version 2 of the License, or (at your
+#     option) any later version.
+#
+#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#     for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with OpenFOAM; if not, write to the Free Software Foundation,
+#     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+#
+# Script
+#     pvFoam
+#
+# Description
+#     ParaView interface script for use with the native reader in ParaView.
+#
+#------------------------------------------------------------------------------
+
+# Adjust as necessary.
+# You might also want to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH.
+#paraviewPath=/Volumes/RAID0data/paraview/build3-gcc42/bin/paraview.app/Contents/MacOS/paraview
+paraviewPath="`which paraview`"
+
+if [ ! -x "$paraviewPath" -o -d "$paraviewPath" ]; then
+    echo "set the paraviewPath variable at line 34 of $0."
+    exit 1
+fi
+
+ext=pfoam
+
+Script=${0##*/}
+rootDir=${1:-.}                # treat missing root as "."
+caseName=${2:-.}               # treat missing case as "."
+caseDir="$rootDir/$caseName"
+
+usage() {
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+usage: $Script <root> <case>
+       $Script <root>
+       $Script
+
+USAGE
+    exit 1
+}
+
+cd "$caseDir" 2>/dev/null || usage "directory does not exist:  '$caseDir'"
+
+if [ -e system/controlDict.${ext} ]; then
+    removeLinkLater="false"
+else
+    if [ ! -s system/controlDict ]; then
+        usage "file does not exist:  'system/controlDict'"
+    fi
+    trap "(cd system; rm -f controlDict.${ext} 2> /dev/null); exit 0" EXIT TERM INT
+    removeLinkLater="true"
+    (cd system; ln -s controlDict controlDict.${ext})
+fi
+
+# specify controlDict.foam with full path so that it can easily be accessed
+# later with File->Recent Files
+"${paraviewPath}" --data="${PWD}/system/controlDict.${ext}"
+
+if [ "x$removeLinkLater" = "xtrue" ]; then
+    rm system/controlDict.${ext}
+fi
+
+#------------------------------------------------------------------------------

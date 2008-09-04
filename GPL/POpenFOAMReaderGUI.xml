@@ -1,0 +1,6 @@
+<ParaViewReaders>
+  <Reader name="POpenFOAMReader"
+          extensions="pfoam"
+          file_description="Decomposed OpenFOAM Files">
+  </Reader>
+</ParaViewReaders>

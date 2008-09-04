@@ -1,0 +1,46 @@
+OpenFOAM native reader for ParaView 3.3-CVS
+
+Description
+===========
+
+This is a package of OpenFOAM native reader for ParaView 3.3-CVS and
+its experimental parallelized implementation for decomposed OpenFOAM
+cases of parallel simulations.
+
+Manifest
+========
+
+  BSD/    serial reader covered by the ParaView license
+  GPL/    parallel reader and additional reader UIs covered by GPL
+  README  this file
+
+Installation
+============
+
+For now the installation configuration of the readers is a bit
+irregular: the installation of serial reader will be done by
+overwriting the existing reader in the ParaView source tree, while the
+parallelized reader and the additional reader UIs will be built as plugins.
+
+First install the serial reader as noted by BSD/ReleaseNotes, then
+proceed to install the parallel reader following
+GPL/ReleaseNotes. Note that in order to install the parallelized
+reader, the serial reader must have been installed.
+
+Notes
+=====
+
+1. The reason why the readers are covered by different licenses comes
+   from the fact I am using the opensource version of Qt, which
+   enforces assignment of GPL for its adoption. In fact the only
+   materials that must be coverd by GPL are the additional UIs. The
+   parallel reader may be covered by the BSD license but I did this
+   way for clarity and simplicity. I will be glad to hear a good
+   solution.
+
+ToDo
+====
+
+* Simplification of installation steps.
+
+/Takuya Oshima (oshima@eng.niigata-u.ac.jp), Aug. 31, 2008
