@@ -1,4 +1,4 @@
-Parallel OpenFOAM native reader plugin for ParaView 3.3-CVS version 20080831
+Parallel OpenFOAM native reader plugin for ParaView 3.3-CVS version 20080905
 
 Description
 ===========
@@ -78,11 +78,12 @@ Notes
 
 4. The reader does nothing about adding ghost cells. So you have to
    see processor boundaries when your geometry is represented in
-   Wireframe or Surface.
+   Wireframe or Surface. If you want to remove internal processor
+   boundaries from the output of Extract Surface, you can run Merge
+   Blocks -> D3 -> Extract Surface.
 
 5. When the reader is run in serial, you can use the Clean to Grid
-   filter to remove internal processor boundaries. Someow it doesn't
-   work when in parallel though...
+   filter to remove internal processor boundaries.
 
 6. To run Stream Tracer when in parallel, a pvserver process should be
    assigned for each decomposed mesh region (since the tracer handles
@@ -120,4 +121,4 @@ ToDo
 
 1. Adding ghost cells to each dataset piece -- How?
 
-/Takuya Oshima (oshima@eng.niigata-u.ac.jp), Aug. 31, 2008
+/Takuya Oshima (oshima@eng.niigata-u.ac.jp), Sep. 05, 2008
