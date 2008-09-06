@@ -25,7 +25,7 @@
 // * Minor performance enhancements
 // by Philippose Rajan (sarith@rocketmail.com)
 
-// version 2008-09-02
+// version 2008-09-06
 
 // Hijack the CRC routine of zlib to omit CRC check for gzipped files
 // (on OSes other than Windows where the mechanism doesn't work due
@@ -195,7 +195,7 @@ private:
   vtkIntArray *FaceOwner;
 
   // for cell-to-point interpolation
-  vtkUnstructuredGrid *AllBoundaries;
+  vtkPolyData *AllBoundaries;
   vtkIntArray *AllBoundariesPointMap;
   vtkIntArray *InternalPoints;
 
@@ -268,8 +268,8 @@ private:
     vtkIntArray *);
   vtkUnstructuredGrid *MakeInternalMesh(const intVectorVector *,
     const intVectorVector *, vtkFloatArray *);
-  void InsertFacesToGrid(vtkUnstructuredGrid *, const intVectorVector *,
-    int, int, vtkIntArray *, vtkIdList *, vtkIntArray *, const bool);
+  void InsertFacesToGrid(vtkPolyData *, const intVectorVector *, int, int,
+    vtkIntArray *, vtkIdList *, vtkIntArray *, const bool);
   vtkMultiBlockDataSet* MakeBoundaryMesh(const intVectorVector *,
     vtkFloatArray *);
   void SetBlockName(vtkMultiBlockDataSet *, unsigned int, const char *);
@@ -280,8 +280,8 @@ private:
   void MoveBoundaryMesh(vtkMultiBlockDataSet *, vtkFloatArray *);
 
   // cell-to-point interpolator
-  void InterpolateCellToPoint(vtkFloatArray *, vtkFloatArray *,
-    vtkUnstructuredGrid *, vtkIntArray *, const int);
+  void InterpolateCellToPoint(vtkFloatArray *, vtkFloatArray *, vtkPointSet *,
+    vtkIntArray *, const int);
 
   // read and create cell/point fields
   void ConstructDimensions(vtkStdString *, vtkFoamDict *);
@@ -5129,12 +5129,12 @@ vtkUnstructuredGrid *vtkOpenFOAMReaderPrivate::MakeInternalMesh(
 
 //-----------------------------------------------------------------------------
 // insert faces to grid
-void vtkOpenFOAMReaderPrivate::InsertFacesToGrid(
-  vtkUnstructuredGrid *boundaryMesh, const intVectorVector *facesPoints,
-  int startFace, int endFace, vtkIntArray *boundaryPointMap,
-  vtkIdList *facePointsVtkId, vtkIntArray *labels, bool isLookupValue)
+void vtkOpenFOAMReaderPrivate::InsertFacesToGrid(vtkPolyData *boundaryMesh,
+  const intVectorVector *facesPoints, int startFace, int endFace,
+  vtkIntArray *boundaryPointMap, vtkIdList *facePointsVtkId,
+  vtkIntArray *labels, bool isLookupValue)
 {
-  vtkUnstructuredGrid &bm = *boundaryMesh;
+  vtkPolyData &bm = *boundaryMesh;
 
   for(int j = startFace; j < endFace; j++)
     {
@@ -5247,7 +5247,7 @@ vtkMultiBlockDataSet *vtkOpenFOAMReaderPrivate::MakeBoundaryMesh(
 
   if(this->Parent->GetCreateCellToPoint())
     {
-    this->AllBoundaries = vtkUnstructuredGrid::New();
+    this->AllBoundaries = vtkPolyData::New();
     this->AllBoundaries->Allocate(facesPoints->nElements()
       - this->BoundaryDict[0].startFace);
     }
@@ -5400,7 +5400,7 @@ vtkMultiBlockDataSet *vtkOpenFOAMReaderPrivate::MakeBoundaryMesh(
 
     // create the mesh
     const unsigned int activeBoundaryI = boundaryMesh->GetNumberOfBlocks();
-    vtkUnstructuredGrid *bm = vtkUnstructuredGrid::New();
+    vtkPolyData *bm = vtkPolyData::New();
     boundaryMesh->SetBlock(activeBoundaryI, bm);
 
     // set the name of boundary
@@ -5614,7 +5614,7 @@ void vtkOpenFOAMReaderPrivate::MoveBoundaryMesh(
       vtkPoints *boundaryPoints = vtkPoints::New();
       boundaryPoints->SetData(boundaryPointArray);
       boundaryPointArray->Delete();
-      vtkUnstructuredGrid::SafeDownCast(boundaryMesh->GetBlock(activeBoundaryI))
+      vtkPolyData::SafeDownCast(boundaryMesh->GetBlock(activeBoundaryI))
         ->SetPoints(boundaryPoints);
       boundaryPoints->Delete();
       activeBoundaryI++;
@@ -5624,8 +5624,8 @@ void vtkOpenFOAMReaderPrivate::MoveBoundaryMesh(
 
 //-----------------------------------------------------------------------------
 // as of now the function does not do interpolation, but do just averaging.
-void vtkOpenFOAMReaderPrivate:: InterpolateCellToPoint(vtkFloatArray *pData,
-  vtkFloatArray *iData, vtkUnstructuredGrid *mesh, vtkIntArray *pointList,
+void vtkOpenFOAMReaderPrivate::InterpolateCellToPoint(vtkFloatArray *pData,
+  vtkFloatArray *iData, vtkPointSet *mesh, vtkIntArray *pointList,
   const int nPoints)
 {
   if(nPoints == 0)
@@ -5639,7 +5639,17 @@ void vtkOpenFOAMReaderPrivate:: InterpolateCellToPoint(vtkFloatArray *pData,
   mesh->GetPointCells(0, pointCells);
   pointCells->Delete();
 
-  vtkCellLinks *cl = mesh->GetCellLinks();
+  // since vtkPolyData and vtkUnstructuredGrid do not share common
+  // overloaded GetCellLink() or GetPointCells() functions we have to
+  // do a tedious task
+  vtkUnstructuredGrid *ug = vtkUnstructuredGrid::SafeDownCast(mesh);
+  vtkPolyData *pd = vtkPolyData::SafeDownCast(mesh);
+  vtkCellLinks *cl = NULL;
+  if(ug)
+    {
+    cl = ug->GetCellLinks();
+    }
+
   const int nComponents = iData->GetNumberOfComponents();
 
   if(nComponents == 1)
@@ -5649,9 +5659,18 @@ void vtkOpenFOAMReaderPrivate:: InterpolateCellToPoint(vtkFloatArray *pData,
     for(int pointI = 0; pointI < nPoints; pointI++)
       {
       const int pI = (pointList ? pointList->GetValue(pointI) : pointI);
-      const vtkCellLinks::Link &l = cl->GetLink(pI);
-      const int nCells = static_cast<int>(l.ncells);
-      const vtkIdType *cells = l.cells;
+      unsigned short nCells;
+      vtkIdType *cells;
+      if(cl)
+        {
+        const vtkCellLinks::Link &l = cl->GetLink(pI);
+        nCells = l.ncells;
+        cells = l.cells;
+        }
+      else
+        {
+        pd->GetPointCells(pI, nCells, cells);
+        }
       // use double intermediate variable for precision
       double interpolatedValue = 0.0;
       for(int cellI = 0; cellI < nCells; cellI++)
@@ -5670,9 +5689,18 @@ void vtkOpenFOAMReaderPrivate:: InterpolateCellToPoint(vtkFloatArray *pData,
     for(int pointI = 0; pointI < nPoints; pointI++)
       {
       const int pI = (pointList ? pointList->GetValue(pointI) : pointI);
-      const vtkCellLinks::Link &l = cl->GetLink(pI);
-      const int nCells = static_cast<int>(l.ncells);
-      const vtkIdType *cells = l.cells;
+      unsigned short nCells;
+      vtkIdType *cells;
+      if(cl)
+        {
+        const vtkCellLinks::Link &l = cl->GetLink(pI);
+        nCells = l.ncells;
+        cells = l.cells;
+        }
+      else
+        {
+        pd->GetPointCells(pI, nCells, cells);
+        }
       // use double intermediate variables for precision
       const double weight = (nCells ? 1.0 / static_cast<double>(nCells) : 0.0);
       double summedValue0 = 0.0, summedValue1 = 0.0, summedValue2 = 0.0;
@@ -5698,9 +5726,18 @@ void vtkOpenFOAMReaderPrivate:: InterpolateCellToPoint(vtkFloatArray *pData,
     for(int pointI = 0; pointI < nPoints; pointI++)
       {
       const int pI = (pointList ? pointList->GetValue(pointI) : pointI);
-      const vtkCellLinks::Link &l = cl->GetLink(pI);
-      const int nCells = static_cast<int>(l.ncells);
-      const vtkIdType *cells = l.cells;
+      unsigned short nCells;
+      vtkIdType *cells;
+      if(cl)
+        {
+        const vtkCellLinks::Link &l = cl->GetLink(pI);
+        nCells = l.ncells;
+        cells = l.cells;
+        }
+      else
+        {
+        pd->GetPointCells(pI, nCells, cells);
+        }
       // use double intermediate variables for precision
       const double weight = (nCells ? 1.0 / static_cast<double>(nCells) : 0.0);
       float *interpolatedValue = &pDataPtr[nComponents * pI];
@@ -6294,7 +6331,7 @@ void vtkOpenFOAMReaderPrivate::GetVolFieldAtTimeStep(
 
     if(beI.isActive)
       {
-      vtkUnstructuredGrid *bm = vtkUnstructuredGrid::SafeDownCast(
+      vtkPolyData *bm = vtkPolyData::SafeDownCast(
         boundaryMesh->GetBlock(activeBoundaryI));
       this->AddArrayToFieldData(bm->GetCellData(), vData,
         io.objectName() + dimString);
@@ -6469,7 +6506,7 @@ void vtkOpenFOAMReaderPrivate::GetPointFieldAtTimeStep(
         {
         vData->SetTuple(j, bpMap.GetValue(j), iData);
         }
-      this->AddArrayToFieldData(vtkUnstructuredGrid::SafeDownCast(
+      this->AddArrayToFieldData(vtkPolyData::SafeDownCast(
         boundaryMesh->GetBlock(activeBoundaryI))->GetPointData(), vData,
         io.objectName() + dimString);
       vData->Delete();
@@ -6706,7 +6743,7 @@ bool vtkOpenFOAMReaderPrivate::GetPointZoneMesh(
     // allocate an empty mesh if the list is empty
     if(pointLabelsEntry.firstValue().type() == vtkFoamToken::EMPTYLIST)
       {
-      vtkUnstructuredGrid *pzm = vtkUnstructuredGrid::New();
+      vtkPolyData *pzm = vtkPolyData::New();
       pointZoneMesh->SetBlock(i, pzm);
       pzm->Delete();
       // set name
@@ -6737,7 +6774,7 @@ bool vtkOpenFOAMReaderPrivate::GetPointZoneMesh(
 
     // allocate new grid: we do not use resize() beforehand since it
     // could lead to undefined pointer if we return by error
-    vtkUnstructuredGrid *pzm = vtkUnstructuredGrid::New();
+    vtkPolyData *pzm = vtkPolyData::New();
 
     // set pointZone size
     pzm->Allocate(nPoints);
@@ -6801,7 +6838,7 @@ bool vtkOpenFOAMReaderPrivate::GetFaceZoneMesh(
     // allocate an empty mesh if the list is empty
     if(faceLabelsEntry.firstValue().type() == vtkFoamToken::EMPTYLIST)
       {
-      vtkUnstructuredGrid *fzm = vtkUnstructuredGrid::New();
+      vtkPolyData *fzm = vtkPolyData::New();
       faceZoneMesh->SetBlock(i, fzm);
       fzm->Delete();
       // set name
@@ -6832,7 +6869,7 @@ bool vtkOpenFOAMReaderPrivate::GetFaceZoneMesh(
 
     // allocate new grid: we do not use resize() beforehand since it
     // could lead to undefined pointer if we return by error
-    vtkUnstructuredGrid *fzm = vtkUnstructuredGrid::New();
+    vtkPolyData *fzm = vtkPolyData::New();
 
     // set faceZone size
     fzm->Allocate(nFaces);
@@ -7215,7 +7252,7 @@ int vtkOpenFOAMReaderPrivate::RequestData(vtkMultiBlockDataSet *output,
       {
       for(size_t i = 0; i < this->PointZoneMesh->GetNumberOfBlocks(); i++)
         {
-        vtkUnstructuredGrid::SafeDownCast(this->PointZoneMesh->GetBlock(i))
+        vtkPolyData::SafeDownCast(this->PointZoneMesh->GetBlock(i))
           ->SetPoints(points);
         }
       }
@@ -7223,7 +7260,7 @@ int vtkOpenFOAMReaderPrivate::RequestData(vtkMultiBlockDataSet *output,
       {
       for(size_t i = 0; i < this->FaceZoneMesh->GetNumberOfBlocks(); i++)
         {
-        vtkUnstructuredGrid::SafeDownCast(this->FaceZoneMesh->GetBlock(i))
+        vtkPolyData::SafeDownCast(this->FaceZoneMesh->GetBlock(i))
           ->SetPoints(points);
         }
       }
@@ -7270,7 +7307,7 @@ int vtkOpenFOAMReaderPrivate::RequestData(vtkMultiBlockDataSet *output,
         {
         for(size_t i = 0; i < this->BoundaryMesh->GetNumberOfBlocks(); i++)
           {
-          vtkUnstructuredGrid *bm = vtkUnstructuredGrid::SafeDownCast(
+          vtkPolyData *bm = vtkPolyData::SafeDownCast(
             this->BoundaryMesh->GetBlock(i));
           bm->GetCellData()->Initialize();
           bm->GetPointData()->Initialize();
