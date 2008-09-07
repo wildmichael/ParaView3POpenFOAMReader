@@ -802,7 +802,7 @@ public:
 		const struct passwd *pwentry = getpwuid(getuid());
 	        if(pwentry == NULL)
 		  {
-                  throw stackString() << "Home directory path not found";
+                  throw this->StackString() << "Home directory path not found";
 		  }
                 expandedPath = pwentry->pw_dir;
 #endif
@@ -5978,8 +5978,7 @@ vtkFloatArray *vtkOpenFOAMReaderPrivate::FillField(vtkFoamEntry *entryPtr,
       || fieldType == "SymmTensorField" || fieldType == "TensorField")
       && entry.FirstValue().GetType() == vtkFoamToken::VECTORLIST))
       {
-      const int nTuples
-        = const_cast<vtkFloatArray &>(entry.ScalarList()).GetNumberOfTuples();
+      const int nTuples = entry.ScalarList().GetNumberOfTuples();
       if(nTuples != nElements)
         {
         vtkErrorMacro(<<"Number of cells/points in mesh and field don't match: "
