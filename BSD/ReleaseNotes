@@ -46,6 +46,10 @@ Changes from the previous (20080728) version
 10. Now warns about the existence of different time directories with
    the same time value and removes the duplicates (e.g. "0" and "0.000").
 
+11. Added a Refresh button to refresh case information (timesteps etc.).
+   Due to licensing incompatibility this feature is provided as a
+   separate plugin.  
+
 Installation
 ============
 
@@ -110,30 +114,26 @@ Notes
 
 4. The #remove directive is not supported.
 
-5. At times you may see a bizarre message "had to make up a value for
-   selection" when the selection lists of the reader panel are
-   refreshed. The issue has been filed as a ParaView bug #7583.
-
-6. The builtin cell-to-point filter works like a Cell Data to Point
+5. The builtin cell-to-point filter works like a Cell Data to Point
    Data filter in ParaView in that it just takes the average of cell
    values connected to a point. The difference is that the builtin
    filter takes boundary patch values into account. The filter is
    still not as accurate as the volPoint interpolator in paraFoam,
    which further does inverse distance weighting of cell values.
 
-7. The cell-to-point filter is computationally demanding so you can
+6. The cell-to-point filter is computationally demanding so you can
    turn it off by deselecting "Create cell-to-point filtered data" on
    the reader panel.
 
-8. With the default the reader omits CRC checks for gzipped files
+7. With the default the reader omits CRC checks for gzipped files
    (except on Windows). If you feel it is too adventurous set
    VTK_FOAMFILE_OMIT_CRCCHECK to 0 at the beginning of
    vtkOpenFOAMReader.cxx.
 
-9. To create a slice with volField data you have to extract internal
+8. To create a slice with volField data you have to extract internal
    mesh or turn off reading patches in the reader panel.
 
-10. When the List timesteps according to controlDict checkbox is
+9. When the List timesteps according to controlDict checkbox is
    turned on the reader lists time instances according to descriptions
    in controlDict when (adjustTimeStep, writeControl) == (yes,
    adjustableRunTime) or (no, timeStep) (i. e. writing interval is
@@ -141,20 +141,20 @@ Notes
    valid time directories. This is a different behavior from paraFoam
    which always lists all valid time directories in a case directory.
 
-11. The reader lists field names according to the "object" entry in
+10. The reader lists field names according to the "object" entry in
    FoamFile header, whereas paraFoam lists according to the file name
    of the object. So you need a valid FoamFile header for every
    object.
 
-12. Reading cellZones for polyhedral mesh with the Read Zones feature
+11. Reading cellZones for polyhedral mesh with the Read Zones feature
    may cause ParaView to thrash.
 
-13. Handling of boundary conditions is quite incomplete as of now; if
+12. Handling of boundary conditions is quite incomplete as of now; if
    a boundary patch doesn't have a value nor a uniformValue entry the
    corresponding patch-internal field value is used (i. e. equivalent
    to zeroGradient b. c.).
 
-14. Single precision binary format is not supported.
+13. Single precision binary format is not supported.
 
 ToDo
 ====

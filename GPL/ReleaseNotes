@@ -112,10 +112,6 @@ Notes
    reconstructed cases, set the combo box at top-left of the reader
    panel to "Reconstructed case."
 
-11. At times you may see a bizarre message "had to make up a value for
-   selection" when the selection lists of the reader panel are
-   refreshed. The issue has been filed as a ParaView bug #7583.
-
 ToDo
 ====
 
