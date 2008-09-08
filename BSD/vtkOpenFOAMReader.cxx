@@ -585,22 +585,22 @@ protected:
 
   void Reset()
   {
-    // path_ = "";
+    // this->FileName = "";
     this->File = NULL;
     this->IsCompressed = false;
-    // zStatus_ = Z_OK;
+    // this->ZStatus = Z_OK;
     this->Z.zalloc = Z_NULL;
     this->Z.zfree = Z_NULL;
     this->Z.opaque = Z_NULL;
-    // lineNumber_ = 0;
+    // this->LineNumber = 0;
 #if VTK_FOAMFILE_RECOGNIZE_LINEHEAD
     this->WasNewline = true;
 #endif
 
     this->Inbuf = NULL;
     this->Outbuf = NULL;
-    // bufPtr_ = NULL;
-    // bufEndPtr_ = NULL;
+    // this->BufPtr = NULL;
+    // this->BufEndPtr = NULL;
   }
 
 public:
@@ -643,17 +643,18 @@ private:
 
   void PutBack(const int c)
   {
-    if(--this->BufPtr < this->Outbuf)
+    if(--this->Superclass::BufPtr < this->Superclass::Outbuf)
       {
       this->ThrowDuplicatedPutBackException();
       }
-    *this->BufPtr = c;
+    *this->Superclass::BufPtr = c;
   }
 
   // get a character
   int Getc()
   {
-    return this->BufPtr == this->BufEndPtr ? this->ReadNext() : *this->BufPtr++;
+    return this->Superclass::BufPtr == this->Superclass::BufEndPtr
+      ? this->ReadNext() : *this->Superclass::BufPtr++;
   }
 
   vtkFoamError StackString()
@@ -689,19 +690,19 @@ private:
 
   void Clear()
   {
-    if(this->IsCompressed)
+    if(this->Superclass::IsCompressed)
       {
-      inflateEnd(&this->Z);
+      inflateEnd(&this->Superclass::Z);
       }
 
-    delete [] this->Inbuf;
-    delete [] this->Outbuf;
-    this->Inbuf = this->Outbuf = NULL;
+    delete [] this->Superclass::Inbuf;
+    delete [] this->Superclass::Outbuf;
+    this->Superclass::Inbuf = this->Superclass::Outbuf = NULL;
 
-    if(this->File)
+    if(this->Superclass::File)
       {
-      fclose(this->File);
-      this->File = NULL;
+      fclose(this->Superclass::File);
+      this->Superclass::File = NULL;
       }
     // don't reset the line number so that the last line number is
     // retained after close
@@ -891,9 +892,9 @@ public:
       {
       if(c == '\n')
         {
-        ++this->LineNumber;
+        ++this->Superclass::LineNumber;
 #if VTK_FOAMFILE_RECOGNIZE_LINEHEAD
-        this->WasNewline = true;
+        this->Superclass::WasNewline = true;
 #endif
         }
       }
@@ -905,7 +906,7 @@ public:
 #if VTK_FOAMFILE_RECOGNIZE_LINEHEAD
     if(c != '#')
       {
-      this->WasNewline = false;
+      this->Superclass::WasNewline = false;
       }
 #endif
 
@@ -992,7 +993,7 @@ public:
             }
           else if(c == '\n')
             {
-            ++this->LineNumber;
+            ++this->Superclass::LineNumber;
             if(!wasEscape)
               {
               throw this->StackString()
@@ -1030,12 +1031,12 @@ public:
 #if VTK_FOAMFILE_RECOGNIZE_LINEHEAD
         // placing #-directives in the middle of a line looks like
         // valid for the genuine OF 1.5 parser
-        if(!this->WasNewline)
+        if(!this->Superclass::WasNewline)
           {
           throw this->StackString()
             << "Encountered #-directive in the middle of a line";
           }
-        this->WasNewline = false;
+        this->Superclass::WasNewline = false;
 #endif
         // read directive
         vtkFoamToken directiveToken;
@@ -1125,52 +1126,53 @@ public:
   {
     // reset line number to indicate the beginning of the file when an
     // exception is thrown
-    this->LineNumber = 0;
-    this->FileName = fileName;
+    this->Superclass::LineNumber = 0;
+    this->Superclass::FileName = fileName;
 
-    if(this->File)
+    if(this->Superclass::File)
       {
       throw this->StackString() << "File already opened within this object";
       }
 
-    if((this->File = fopen(this->FileName.c_str(), "rb")) == NULL)
+    if((this->Superclass::File
+      = fopen(this->Superclass::FileName.c_str(), "rb")) == NULL)
       {
       throw this->StackString() << "Can't open";
       }
 
     unsigned char zMagic[2];
-    if(fread(zMagic, 1, 2, this->File) == 2
+    if(fread(zMagic, 1, 2, this->Superclass::File) == 2
       && zMagic[0] == 0x1f && zMagic[1] == 0x8b)
       {
       // gzip-compressed format
-      this->Z.avail_in = 0;
-      this->Z.next_in = Z_NULL;
+      this->Superclass::Z.avail_in = 0;
+      this->Superclass::Z.next_in = Z_NULL;
       // + 32 to automatically recognize gzip format
-      if(inflateInit2(&this->Z, 15 + 32) == Z_OK)
+      if(inflateInit2(&this->Superclass::Z, 15 + 32) == Z_OK)
         {
-        this->IsCompressed = true;
-        this->Inbuf = new unsigned char[VTK_FOAMFILE_INBUFSIZE];
+        this->Superclass::IsCompressed = true;
+        this->Superclass::Inbuf = new unsigned char[VTK_FOAMFILE_INBUFSIZE];
         }
       else
         {
-        fclose(this->File);
-        this->File = NULL;
+        fclose(this->Superclass::File);
+        this->Superclass::File = NULL;
         throw this->StackString() << "Can't init zstream "
-          << (this->Z.msg ? this->Z.msg : "");
+          << (this->Superclass::Z.msg ? this->Superclass::Z.msg : "");
         }
       }
     else
       {
       // uncompressed format
-      this->IsCompressed = false;
+      this->Superclass::IsCompressed = false;
       }
-    rewind(this->File);
+    rewind(this->Superclass::File);
 
-    this->ZStatus = Z_OK;
-    this->Outbuf = new unsigned char[VTK_FOAMFILE_OUTBUFSIZE + 1];
-    this->BufPtr = this->Outbuf + 1;
-    this->BufEndPtr = this->BufPtr;
-    this->LineNumber = 1;
+    this->Superclass::ZStatus = Z_OK;
+    this->Superclass::Outbuf = new unsigned char[VTK_FOAMFILE_OUTBUFSIZE + 1];
+    this->Superclass::BufPtr = this->Superclass::Outbuf + 1;
+    this->Superclass::BufEndPtr = this->Superclass::BufPtr;
+    this->Superclass::LineNumber = 1;
   }
 
   void Close()
@@ -1183,10 +1185,10 @@ public:
   int Read(unsigned char *buf, const int len)
   {
     int readlen;
-    const int buflen = this->BufEndPtr - this->BufPtr;
+    const int buflen = this->Superclass::BufEndPtr - this->Superclass::BufPtr;
     if(len > buflen)
       {
-      memcpy(buf, this->BufPtr, buflen);
+      memcpy(buf, this->Superclass::BufPtr, buflen);
       readlen = this->InflateNext(buf + buflen, len - buflen);
       if(readlen >= 0)
         {
@@ -1203,19 +1205,19 @@ public:
           readlen = buflen;
           }
         }
-      this->BufPtr = this->BufEndPtr;
+      this->Superclass::BufPtr = this->Superclass::BufEndPtr;
       }
     else
       {
-      memcpy(buf, this->BufPtr, len);
-      this->BufPtr += len;
+      memcpy(buf, this->Superclass::BufPtr, len);
+      this->Superclass::BufPtr += len;
       readlen = len;
       }
     for(int i = 0; i < readlen; i++)
       {
       if(buf[i] == '\n')
         {
-        this->LineNumber++;
+        this->Superclass::LineNumber++;
         }
       }
     return readlen;
@@ -1230,9 +1232,9 @@ public:
       {
       if(c == '\n')
         {
-        ++this->LineNumber;
+        ++this->Superclass::LineNumber;
 #if VTK_FOAMFILE_RECOGNIZE_LINEHEAD
-        this->WasNewline = true;
+        this->Superclass::WasNewline = true;
 #endif
         }
       }
@@ -1262,11 +1264,11 @@ public:
 
 int vtkOpenFOAMReaderPrivate::vtkFoamFile::ReadNext()
 {
-  if(!this->InflateNext(this->Outbuf + 1, VTK_FOAMFILE_OUTBUFSIZE))
+  if(!this->InflateNext(this->Superclass::Outbuf + 1, VTK_FOAMFILE_OUTBUFSIZE))
     {
     return this->CloseIncludedFile() ? this->Getc() : EOF;
     }
-  return *this->BufPtr++;
+  return *this->Superclass::BufPtr++;
 }
 
 // specialized for reading an integer value.
@@ -1280,9 +1282,9 @@ template<> int vtkOpenFOAMReaderPrivate::vtkFoamFile::ReadValue()
     {
     if(c == '\n')
       {
-      ++this->LineNumber;
+      ++this->Superclass::LineNumber;
 #if VTK_FOAMFILE_RECOGNIZE_LINEHEAD
-      this->WasNewline = true;
+      this->Superclass::WasNewline = true;
 #endif
       }
     }
@@ -1298,9 +1300,9 @@ template<> int vtkOpenFOAMReaderPrivate::vtkFoamFile::ReadValue()
     c = this->Getc();
     if(c == '\n')
       {
-      ++this->LineNumber;
+      ++this->Superclass::LineNumber;
 #if VTK_FOAMFILE_RECOGNIZE_LINEHEAD
-      this->WasNewline = true;
+      this->Superclass::WasNewline = true;
 #endif
       }
     }
@@ -1344,9 +1346,9 @@ template<> float vtkOpenFOAMReaderPrivate::vtkFoamFile::ReadValue()
     {
     if(c == '\n')
       {
-      ++this->LineNumber;
+      ++this->Superclass::LineNumber;
 #if VTK_FOAMFILE_RECOGNIZE_LINEHEAD
-      this->WasNewline = true;
+      this->Superclass::WasNewline = true;
 #endif
       }
     }
@@ -1363,9 +1365,9 @@ template<> float vtkOpenFOAMReaderPrivate::vtkFoamFile::ReadValue()
     c = this->Getc();
     if(c == '\n')
       {
-      ++this->LineNumber;
+      ++this->Superclass::LineNumber;
 #if VTK_FOAMFILE_RECOGNIZE_LINEHEAD
-      this->WasNewline = true;
+      this->Superclass::WasNewline = true;
 #endif
       }
     }
@@ -1496,52 +1498,52 @@ bool vtkOpenFOAMReaderPrivate::vtkFoamFile::InflateNext(unsigned char *buf,
   int requestSize)
 {
   int size;
-  if(this->IsCompressed)
+  if(this->Superclass::IsCompressed)
     {
-    if(this->ZStatus != Z_OK)
+    if(this->Superclass::ZStatus != Z_OK)
       {
       return false;
       }
-    this->Z.next_out = buf;
-    this->Z.avail_out = requestSize;
+    this->Superclass::Z.next_out = buf;
+    this->Superclass::Z.avail_out = requestSize;
 
     do
       {
-      if(this->Z.avail_in == 0)
+      if(this->Superclass::Z.avail_in == 0)
         {
-        this->Z.next_in = this->Inbuf;
-        this->Z.avail_in = fread(this->Inbuf, 1, VTK_FOAMFILE_INBUFSIZE,
-          this->File);
-        if(ferror(this->File))
+        this->Superclass::Z.next_in = this->Superclass::Inbuf;
+        this->Superclass::Z.avail_in = fread(this->Superclass::Inbuf, 1,
+          VTK_FOAMFILE_INBUFSIZE, this->Superclass::File);
+        if(ferror(this->Superclass::File))
           {
           throw this->StackString() << "Fread failed";
           }
         }
-      this->ZStatus = inflate(&this->Z, Z_NO_FLUSH);
-      if(this->ZStatus == Z_STREAM_END
+      this->Superclass::ZStatus = inflate(&this->Superclass::Z, Z_NO_FLUSH);
+      if(this->Superclass::ZStatus == Z_STREAM_END
 #if VTK_FOAMFILE_OMIT_CRCCHECK
         // the dummy CRC function causes data error when finalizing
         // so we have to proceed even when a data error is detected
-        || this->ZStatus == Z_DATA_ERROR
+        || this->Superclass::ZStatus == Z_DATA_ERROR
 #endif
         )
         {
         break;
         }
-      if(this->ZStatus != Z_OK)
+      if(this->Superclass::ZStatus != Z_OK)
         {
         throw this->StackString() << "Inflation failed: "
-          << (this->Z.msg ? this->Z.msg : "");
+          << (this->Superclass::Z.msg ? this->Superclass::Z.msg : "");
         }
       }
-    while(this->Z.avail_out > 0);
+    while(this->Superclass::Z.avail_out > 0);
 
-    size = requestSize - this->Z.avail_out;
+    size = requestSize - this->Superclass::Z.avail_out;
     }
   else
     {
     // not compressed
-    size = fread(buf, 1, requestSize, this->File);
+    size = fread(buf, 1, requestSize, this->Superclass::File);
     }
 
   if(size <= 0)
@@ -1551,8 +1553,9 @@ bool vtkOpenFOAMReaderPrivate::vtkFoamFile::InflateNext(unsigned char *buf,
     return false;
     }
   // size > 0
-  this->BufPtr = this->Outbuf + 1; // reserve the first byte for getback char
-  this->BufEndPtr = this->BufPtr + size;
+  // reserve the first byte for getback char
+  this->Superclass::BufPtr = this->Superclass::Outbuf + 1;
+  this->Superclass::BufEndPtr = this->Superclass::BufPtr + size;
   return true;
 }
 
@@ -1566,9 +1569,9 @@ int vtkOpenFOAMReaderPrivate::vtkFoamFile::NextTokenHead()
       {
       if(c == '\n')
         {
-        ++this->LineNumber;
+        ++this->Superclass::LineNumber;
 #if VTK_FOAMFILE_RECOGNIZE_LINEHEAD
-        this->WasNewline = true;
+        this->Superclass::WasNewline = true;
 #endif
         }
       }
@@ -1581,9 +1584,9 @@ int vtkOpenFOAMReaderPrivate::vtkFoamFile::NextTokenHead()
           {
           return c;
           }
-        ++this->LineNumber;
+        ++this->Superclass::LineNumber;
 #if VTK_FOAMFILE_RECOGNIZE_LINEHEAD
-        this->WasNewline = true;
+        this->Superclass::WasNewline = true;
 #endif
         }
       else if(c == '*')
@@ -1594,7 +1597,7 @@ int vtkOpenFOAMReaderPrivate::vtkFoamFile::NextTokenHead()
             {
             if(c == '\n')
               {
-              ++this->LineNumber;
+              ++this->Superclass::LineNumber;
               }
             }
           if(c == EOF)
@@ -3267,12 +3270,12 @@ void vtkOpenFOAMReaderPrivate::ClearMeshes()
 
 void vtkOpenFOAMReaderPrivate::SetTimeValue(const double requestedTime)
 {
-  const int nTimes = this->TimeValues->GetNumberOfTuples();
-  if(nTimes > 0)
+  const int nTimeValues = this->TimeValues->GetNumberOfTuples();
+  if(nTimeValues > 0)
     {
     int minTimeI = 0;
     double minTimeDiff = fabs(this->TimeValues->GetValue(0) - requestedTime);
-    for(int timeI = 1; timeI < nTimes; timeI++)
+    for(int timeI = 1; timeI < nTimeValues; timeI++)
       {
       const double timeDiff(
         fabs(this->TimeValues->GetValue(timeI) - requestedTime));
@@ -3521,9 +3524,9 @@ int vtkOpenFOAMReaderPrivate::MakeMetaDataAtTimeStep(
         const vtkStdString &boundaryNameI = boundaryEntryI->GetKeyword();
 
         // create BoundaryDict entry
-        vtkFoamBoundaryEntry &BoundaryDictRef = this->BoundaryDict[i];
-        BoundaryDictRef.NFaces = nFaces;
-        BoundaryDictRef.BoundaryName = boundaryNameI;
+        vtkFoamBoundaryEntry &BoundaryEntryI = this->BoundaryDict[i];
+        BoundaryEntryI.NFaces = nFaces;
+        BoundaryEntryI.BoundaryName = boundaryNameI;
         const vtkFoamEntry *startFaceEntry
           = boundaryEntryI->Dictionary().Lookup("startFace");
         if(startFaceEntry == NULL)
@@ -3533,7 +3536,7 @@ int vtkOpenFOAMReaderPrivate::MakeMetaDataAtTimeStep(
           delete boundaryDict;
           return 0;
           }
-        BoundaryDictRef.StartFace = startFaceEntry->ToInt();
+        BoundaryEntryI.StartFace = startFaceEntry->ToInt();
         const vtkFoamEntry *typeEntry
           = boundaryEntryI->Dictionary().Lookup("type");
         if(typeEntry == NULL)
@@ -3543,30 +3546,30 @@ int vtkOpenFOAMReaderPrivate::MakeMetaDataAtTimeStep(
           delete boundaryDict;
           return 0;
           }
-        BoundaryDictRef.AllBoundariesStartFace = allBoundariesNextStartFace;
+        BoundaryEntryI.AllBoundariesStartFace = allBoundariesNextStartFace;
         const vtkStdString typeNameI(typeEntry->ToString());
         // if the basic type of the patch is one of the followings the
-        // point-filtered values at patches are overrided by patch values
+        // point-filtered values at patches are overridden by patch values
         if(typeNameI == "patch" || typeNameI == "wall")
           {
-          BoundaryDictRef.BoundaryType = vtkFoamBoundaryEntry::PHYSICAL;
+          BoundaryEntryI.BoundaryType = vtkFoamBoundaryEntry::PHYSICAL;
           allBoundariesNextStartFace += nFaces;
           }
         else if(typeNameI == "processor")
           {
-          BoundaryDictRef.BoundaryType = vtkFoamBoundaryEntry::PROCESSOR;
+          BoundaryEntryI.BoundaryType = vtkFoamBoundaryEntry::PROCESSOR;
           allBoundariesNextStartFace += nFaces;
           }
         else
           {
-          BoundaryDictRef.BoundaryType = vtkFoamBoundaryEntry::GEOMETRICAL;
+          BoundaryEntryI.BoundaryType = vtkFoamBoundaryEntry::GEOMETRICAL;
           }
-        BoundaryDictRef.IsActive = false;
+        BoundaryEntryI.IsActive = false;
 
         // always hide processor patches for decomposed cases to keep
         // vtkAppendCompositeDataLeaves happy
         if(this->ProcessorName != ""
-          && BoundaryDictRef.BoundaryType == vtkFoamBoundaryEntry::PROCESSOR)
+          && BoundaryEntryI.BoundaryType == vtkFoamBoundaryEntry::PROCESSOR)
           {
           continue;
           }
@@ -3577,7 +3580,7 @@ int vtkOpenFOAMReaderPrivate::MakeMetaDataAtTimeStep(
           // Mark boundary if selected for display
           if(this->Parent->GetPatchArrayStatus(selectionName.c_str()))
             {
-            BoundaryDictRef.IsActive = true;
+            BoundaryEntryI.IsActive = true;
             }
           }
         else
@@ -4006,9 +4009,18 @@ bool vtkOpenFOAMReaderPrivate::MakeInformationVector(
     return ret;
     }
 
-  if(this->TimeStep >= this->TimeValues->GetNumberOfTuples())
+  // does not seem to be required even if number of timesteps reduced
+  // upon refresh since ParaView rewinds TimeStep to 0, but for precaution
+  if(this->TimeValues->GetNumberOfTuples() > 0)
     {
-    this->SetTimeStep(this->TimeValues->GetNumberOfTuples() - 1);
+    if(this->TimeStep >= this->TimeValues->GetNumberOfTuples())
+      {
+      this->SetTimeStep(this->TimeValues->GetNumberOfTuples() - 1);
+      }
+    }
+  else
+    {
+    this->SetTimeStep(0);
     }
 
   this->PopulatePolyMeshDirArrays();
