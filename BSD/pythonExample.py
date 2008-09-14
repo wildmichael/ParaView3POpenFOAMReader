@@ -10,7 +10,7 @@
 ##
 ## This script is a part of the vtkOpenFOAMReader distribution.
 
-## The path to the icoFoam/cavity case. Modify as appropriate.
+## Path to the icoFoam/cavity case. Modify as appropriate.
 cavityPath = 'D:/ohshima/OpenFOAM/ohshima-1.4/run/tutorials/icoFoam/cavity/system/controlDict'
 
 ## Importing servermanager is not necessary if running from Tools->Python Shell 
@@ -65,8 +65,8 @@ rep.LookupTable = lt
 ## Set the coloring attribute type
 ## 0 = Point data, 1 = Cell data
 rep.ColorAttributeType = 0
-## Color by CellToPoint[p]
-rep.ColorArrayName = 'CellToPoint[p]'
+## Color by pressure
+rep.ColorArrayName = 'p'
 ## The lookup table is used to map scalar values of the array to
 ## colors. The values in the lookup table have 4 numbers: 1 scalar
 ## value and 3 color values (R, G, B). This particular table has 2
