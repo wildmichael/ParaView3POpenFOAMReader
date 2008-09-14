@@ -1,4 +1,4 @@
-OpenFOAM native reader for ParaView 3.3-CVS version 20080831
+OpenFOAM native reader for ParaView 3.3/3.5-CVS version 20080831
 
 This reader is a modified version of the native reader included in
 ParaView 3.3 which is an original work of Terry Jordan.
@@ -66,7 +66,7 @@ Installation
       <packageDirectory>/BSD/preInstall.sh
 
 4. Build ParaView3.
-  For general ParaView 3.3-CVS: Build ParaView3 as usual. You would
+  For general ParaView 3.3/3.5-CVS: Build ParaView3 as usual. You would
     want to turn on compiler optimization (set CMAKE_BUILD_TYPE to
     Release). Without it the reader is dead slow. For a rough
     performance indication, the reader loads an ascii-gzipped mesh
