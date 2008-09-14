@@ -1,11 +1,11 @@
-OpenFOAM native reader for ParaView 3.3-CVS
+OpenFOAM native reader for ParaView 3.3/3.5-CVS
 
 Description
 ===========
 
-This is a package of OpenFOAM native reader for ParaView 3.3-CVS and
-its experimental parallelized implementation for decomposed OpenFOAM
-cases of parallel simulations.
+This is a package of OpenFOAM native reader for ParaView 3.3/3.5-CVS
+and its experimental parallelized implementation for decomposed
+OpenFOAM cases of parallel simulations.
 
 Manifest
 ========
