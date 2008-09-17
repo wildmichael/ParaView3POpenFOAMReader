@@ -40,8 +40,13 @@ pqPOpenFOAMPanel::pqPOpenFOAMPanel(pqProxy *pxy, QWidget *p)
   type->addItem("Reconstructed case");
   // place the box at top-left of the layout grid
   this->PanelLayout->addWidget(type, 0, 0);
-  vtkSMIntVectorProperty::SafeDownCast(vtkSMSourceProxy::SafeDownCast(
-    this->proxy())->GetProperty("CaseType"))->SetImmediateUpdate(1);
+
+  vtkSMIntVectorProperty *propCaseType = vtkSMIntVectorProperty::SafeDownCast(
+    vtkSMSourceProxy::SafeDownCast(this->proxy())->GetProperty("CaseType"));
+  // read the initial case type from the property and set it before
+  // connect() to avoid unnecessary pipeline update
+  type->setCurrentIndex(propCaseType->GetElement(0));
+  propCaseType->SetImmediateUpdate(1);
   QObject::connect(type, SIGNAL(currentIndexChanged(int)), this,
     SLOT(onCurrentIndexChanged(int)));
 }

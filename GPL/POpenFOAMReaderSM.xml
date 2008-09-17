@@ -23,7 +23,6 @@
   <IntVectorProperty 
     name="CaseType" 
     command="SetCaseType"
-    is_internal="1"
     number_of_elements="1"
     default_values="0"
     animateable="0">
