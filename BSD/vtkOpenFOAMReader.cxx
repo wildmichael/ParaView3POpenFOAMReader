@@ -209,6 +209,7 @@ private:
   vtkMultiBlockDataSet *CellZoneMesh;
 
   // for polyhedra handling
+  int NumAdditionalCells;
   vtkIntArray *AdditionalCellIds;
   vtkFoamIntArrayVector *AdditionalCellPoints;
 
@@ -3200,6 +3201,7 @@ vtkOpenFOAMReaderPrivate::vtkOpenFOAMReaderPrivate()
   this->CellZoneMesh = NULL;
 
   // for decomposing polyhedra
+  this->NumAdditionalCells = 0;
   this->AdditionalCellIds = NULL;
   this->AdditionalCellPoints = NULL;
 }
@@ -4460,6 +4462,7 @@ void vtkOpenFOAMReaderPrivate::InsertCellsToGrid(
   const int nCells
     = (cellList == NULL ? this->NumCells : cellList->GetNumberOfTuples());
   int nAdditionalPoints = 0;
+  this->NumAdditionalCells = 0;
 
   // alias
   const vtkFoamIntVectorVector& facePoints = *facesPoints;
@@ -5009,6 +5012,7 @@ void vtkOpenFOAMReaderPrivate::InsertCellsToGrid(
         // a tweaked algorithm based on applications/utilities/postProcessing/
         // graphics/PVFoamReader/vtkFoam/vtkFoamAddInternalMesh.C
         bool insertDecomposedCell = true;
+	int nAdditionalCells = 0;
         for(int j = 0; j < nCellFaces; j++)
           {
           const int cellFacesJ = cellFaces[j];
@@ -5072,7 +5076,7 @@ void vtkOpenFOAMReaderPrivate::InsertCellsToGrid(
               }
             else
               {
-              this->AdditionalCellIds->InsertNextValue(cellId);
+	      nAdditionalCells++;
               additionalCells->InsertNextTupleValue(cellPoints->GetPointer(0));
               }
             }
@@ -5102,12 +5106,17 @@ void vtkOpenFOAMReaderPrivate::InsertCellsToGrid(
               {
               // set the 5th vertex number to -1 to distinguish a tetra cell
               cellPoints->SetId(4, -1);
-              this->AdditionalCellIds->InsertNextValue(cellId);
+	      nAdditionalCells++;
               additionalCells->InsertNextTupleValue(cellPoints->GetPointer(0));
               }
             }
           }
         nAdditionalPoints++;
+	int tuple[2];
+	tuple[0] = nAdditionalCells;
+	tuple[1] = cellId;
+	this->AdditionalCellIds->InsertNextTupleValue(tuple);
+	this->NumAdditionalCells += nAdditionalCells;
         }
       else // don't decompose; use VTK_CONVEX_PONIT_SET
         {
@@ -5201,6 +5210,7 @@ vtkUnstructuredGrid *vtkOpenFOAMReaderPrivate::MakeInternalMesh(
     {
     // for polyhedral decomposition
     this->AdditionalCellIds = vtkIntArray::New();
+    this->AdditionalCellIds->SetNumberOfComponents(2);
     this->AdditionalCellPoints = new vtkFoamIntArrayVector;
 
     vtkIdTypeArray *additionalCells = vtkIdTypeArray::New();
@@ -5706,7 +5716,7 @@ vtkPoints *vtkOpenFOAMReaderPrivate::MoveInternalMesh(
     }
 
   // instantiate the points class
-  vtkPoints* points = vtkPoints::New();
+  vtkPoints *points = vtkPoints::New();
   points->SetData(pointArray);
   internalMesh->SetPoints(points);
   return points;
@@ -6221,16 +6231,21 @@ void vtkOpenFOAMReaderPrivate::GetVolFieldAtTimeStep(
     // the internalField.
     if(internalMesh != NULL)
       {
-      int nAdditionalCells = 0;
       if(this->Parent->GetDecomposePolyhedra())
         {
         // add values for decomposed cells
-        nAdditionalCells = this->AdditionalCellIds->GetNumberOfTuples();
-        iData->Resize(this->NumCells + nAdditionalCells);
-        for(int i = 0; i < nAdditionalCells; i++)
+        iData->Resize(this->NumCells + this->NumAdditionalCells);
+        const int nTuples = this->AdditionalCellIds->GetNumberOfTuples();
+	const int *cellIdsPtr = this->AdditionalCellIds->GetPointer(0);
+        int additionalCellI = this->NumCells;
+        for(int tupleI = 0; tupleI < nTuples; tupleI++)
           {
-          iData->InsertTuple(this->NumCells + i,
-          static_cast<vtkIdType>(this->AdditionalCellIds->GetValue(i)), iData);
+          const int nCells = cellIdsPtr[2 * tupleI];
+          const vtkIdType cellId = cellIdsPtr[2 * tupleI + 1];
+	  for(int cellI = 0; cellI < nCells; cellI++)
+	    {
+            iData->InsertTuple(additionalCellI++, cellId, iData);
+            }
           }
         }
 
@@ -6254,17 +6269,13 @@ void vtkOpenFOAMReaderPrivate::GetVolFieldAtTimeStep(
         if(this->Parent->GetDecomposePolyhedra())
           {
           // assign cell values to additional points
-          for(int cellI = 0, oldCellId = -1, pointI = this->NumPoints;
-            cellI < nAdditionalCells; cellI++)
-            {
-            const int cellId = this->AdditionalCellIds->GetValue(cellI);
-            if(cellId != oldCellId)
-              {
-              ctpData->SetTuple(pointI, cellId, iData);
-              pointI++;
-              oldCellId = cellId;
-              }
-            }
+          const int nPoints = this->AdditionalCellIds->GetNumberOfTuples();
+	  const int *cellIdsPtr = this->AdditionalCellIds->GetPointer(0);
+	  for(int pointI = 0; pointI < nPoints; pointI++)
+	    {
+	    ctpData->SetTuple(this->NumPoints + pointI,
+              cellIdsPtr[2 * pointI + 1], iData);
+	    }
           }
         }
       }
