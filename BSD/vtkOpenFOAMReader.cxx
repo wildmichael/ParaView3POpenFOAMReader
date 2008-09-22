@@ -538,18 +538,35 @@ public:
 };
 
 template<> inline bool vtkOpenFOAMReaderPrivate::vtkFoamToken::Is<int>() const
-{ return this->Type == LABEL; }
+{
+  return this->Type == LABEL;
+}
+
 template<> inline bool vtkOpenFOAMReaderPrivate::vtkFoamToken::Is<float>() const
-{ return this->Type == LABEL || this->Type == SCALAR; }
+{
+  return this->Type == LABEL || this->Type == SCALAR;
+}
+
 template<> inline bool vtkOpenFOAMReaderPrivate::vtkFoamToken::Is<double>()
   const
-{ return this->Type == SCALAR; }
+{
+  return this->Type == SCALAR;
+}
+
 template<> inline int vtkOpenFOAMReaderPrivate::vtkFoamToken::To() const
-{ return this->Int; }
+{
+  return this->Int;
+}
+
 template<> inline float vtkOpenFOAMReaderPrivate::vtkFoamToken::To() const
-{ return this->Type == LABEL ? this->Int : this->Double; }
+{
+  return this->Type == LABEL ? this->Int : this->Double;
+}
+
 template<> inline double vtkOpenFOAMReaderPrivate::vtkFoamToken::To() const
-{ return this->Type == LABEL ? this->Int : this->Double; }
+{
+  return this->Type == LABEL ? this->Int : this->Double;
+}
 
 //-----------------------------------------------------------------------------
 // class vtkFoamFileStack
@@ -1465,7 +1482,9 @@ template<> float vtkOpenFOAMReaderPrivate::vtkFoamFile::ReadValue()
 // hacks to keep exception throwing code out-of-line to make
 // putBack() and readExpecting() inline expandable
 void vtkOpenFOAMReaderPrivate::vtkFoamFile::ThrowUnexpectedEOFException()
-{ throw this->StackString() << "Unexpected EOF"; }
+{
+  throw this->StackString() << "Unexpected EOF";
+}
 
 void vtkOpenFOAMReaderPrivate::vtkFoamFile
   ::ThrowUnexpectedNondigitCharExecption(const int c)
@@ -1492,7 +1511,9 @@ void vtkOpenFOAMReaderPrivate::vtkFoamFile::ThrowUnexpectedTokenException(
 }
 
 void vtkOpenFOAMReaderPrivate::vtkFoamFile::ThrowDuplicatedPutBackException()
-{ throw this->StackString() << "Attempted duplicated putBack()"; }
+{
+  throw this->StackString() << "Attempted duplicated putBack()";
+}
 
 bool vtkOpenFOAMReaderPrivate::vtkFoamFile::InflateNext(unsigned char *buf,
   int requestSize)
