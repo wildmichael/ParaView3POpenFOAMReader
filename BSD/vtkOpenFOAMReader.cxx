@@ -6581,10 +6581,10 @@ void vtkOpenFOAMReaderPrivate::GetPointFieldAtTimeStep(
       {
       vtkIntArray *acp = this->AdditionalCellPoints->operator[](i);
       int nPoints = acp->GetDataSize();
-      float interpolatedValue[9];
+      double interpolatedValue[9];
       for(int k = 0; k < nComponents; k++)
         {
-        interpolatedValue[k] = 0.0F;
+        interpolatedValue[k] = 0.0;
         }
       for(int j = 0; j < nPoints; j++)
         {
@@ -6594,11 +6594,12 @@ void vtkOpenFOAMReaderPrivate::GetPointFieldAtTimeStep(
           interpolatedValue[k] += tuple[k];
           }
         }
-      const float weight = 1.0F / static_cast<float>(nPoints);
+      const double weight = 1.0 / static_cast<double>(nPoints);
       for(int k = 0; k < nComponents; k++)
         {
         interpolatedValue[k] *= weight;
         }
+      // will automatically be converted to float
       iData->InsertTuple(this->NumPoints + i, interpolatedValue);
       }
     }
