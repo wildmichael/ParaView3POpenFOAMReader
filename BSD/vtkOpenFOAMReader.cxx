@@ -271,6 +271,7 @@ private:
     const vtkFoamIntVectorVector *, vtkFloatArray *);
   void InsertFacesToGrid(vtkPolyData *, const vtkFoamIntVectorVector *, int,
     int, vtkIntArray *, vtkIdList *, vtkIntArray *, const bool);
+  template <typename T1, typename T2> bool ExtendArray(T1 *, const int);
   vtkMultiBlockDataSet* MakeBoundaryMesh(const vtkFoamIntVectorVector *,
     vtkFloatArray *);
   void SetBlockName(vtkMultiBlockDataSet *, unsigned int, const char *);
@@ -5677,6 +5678,24 @@ void vtkOpenFOAMReaderPrivate::TruncateFaceOwner()
 }
 
 //-----------------------------------------------------------------------------
+// this is necessary due to the strange vtkDataArrayTemplate::Resize()
+// implementation when the array size is extended
+template <typename T1, typename T2>
+bool vtkOpenFOAMReaderPrivate::ExtendArray(T1 *array, const int nTuples)
+{
+  const int newSize = nTuples * array->GetNumberOfComponents();
+  void *ptr = malloc(newSize * array->GetDataTypeSize());
+  if(ptr == NULL)
+    {
+    return false;
+    }
+  memmove(ptr, array->GetVoidPointer(0),
+    array->GetDataSize() * array->GetDataTypeSize());
+  array->SetArray(static_cast<T2 *>(ptr), newSize, 0);
+  return true;
+}
+
+//-----------------------------------------------------------------------------
 // move polyhedral cell centroids
 vtkPoints *vtkOpenFOAMReaderPrivate::MoveInternalMesh(
   vtkUnstructuredGrid *internalMesh, vtkFloatArray *pointArray)
@@ -5684,7 +5703,8 @@ vtkPoints *vtkOpenFOAMReaderPrivate::MoveInternalMesh(
   if(this->Parent->GetDecomposePolyhedra())
     {
     const int nAdditionalCells = this->AdditionalCellPoints->size();
-    pointArray->Resize(this->NumPoints + nAdditionalCells);
+    this->ExtendArray<vtkFloatArray, float>(pointArray,
+      this->NumPoints + nAdditionalCells);
     for(int i = 0; i < nAdditionalCells; i++)
       {
       vtkIntArray *polyCellPoints = this->AdditionalCellPoints->operator[](i);
@@ -6234,7 +6254,8 @@ void vtkOpenFOAMReaderPrivate::GetVolFieldAtTimeStep(
       if(this->Parent->GetDecomposePolyhedra())
         {
         // add values for decomposed cells
-        iData->Resize(this->NumCells + this->NumAdditionalCells);
+        this->ExtendArray<vtkFloatArray, float>(iData,
+          this->NumCells + this->NumAdditionalCells);
         const int nTuples = this->AdditionalCellIds->GetNumberOfTuples();
 	const int *cellIdsPtr = this->AdditionalCellIds->GetPointer(0);
         int additionalCellI = this->NumCells;
@@ -6576,7 +6597,8 @@ void vtkOpenFOAMReaderPrivate::GetPointFieldAtTimeStep(
     // for decomposed cells
     const int nAdditionalPoints = this->AdditionalCellPoints->size();
     const int nComponents = iData->GetNumberOfComponents();
-    iData->Resize(this->NumPoints + nAdditionalPoints);
+    this->ExtendArray<vtkFloatArray, float>(iData,
+      this->NumPoints + nAdditionalPoints);
     for(int i = 0; i < nAdditionalPoints; i++)
       {
       vtkIntArray *acp = this->AdditionalCellPoints->operator[](i);
