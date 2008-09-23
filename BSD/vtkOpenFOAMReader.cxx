@@ -132,7 +132,27 @@ public:
     const vtkStdString &, vtkOpenFOAMReaderPrivate *);
 
 private:
-  struct vtkFoamIntArrayVector;
+  template <typename T> struct vtkFoamArrayVector
+    : public vtkstd::vector<T *>
+  {
+  private:
+    typedef vtkstd::vector<T *> Superclass;
+
+  public:
+    ~vtkFoamArrayVector()
+    {
+      for(size_t arrayI = 0; arrayI < Superclass::size(); arrayI++)
+        {
+        if(Superclass::operator[](arrayI))
+          {
+          Superclass::operator[](arrayI)->Delete();
+          }
+        }
+    }
+  };
+
+  typedef struct vtkFoamArrayVector<vtkIntArray> vtkFoamIntArrayVector;
+  typedef struct vtkFoamArrayVector<vtkFloatArray> vtkFoamFloatArrayVector;
   struct vtkFoamIntVectorVector;
 
   struct vtkFoamError;
@@ -203,14 +223,16 @@ private:
   vtkUnstructuredGrid *InternalMesh;
   vtkMultiBlockDataSet *BoundaryMesh;
   vtkFoamIntArrayVector *BoundaryPointMap;
+  vtkFoamFloatArrayVector *ReciprocalDelta;
   vtkFoamBoundaryDict BoundaryDict;
   vtkMultiBlockDataSet *PointZoneMesh;
   vtkMultiBlockDataSet *FaceZoneMesh;
   vtkMultiBlockDataSet *CellZoneMesh;
 
   // for polyhedra handling
-  int NumAdditionalCells;
+  int NumTotalAdditionalCells;
   vtkIntArray *AdditionalCellIds;
+  vtkIntArray *NumAdditionalCells;
   vtkFoamIntArrayVector *AdditionalCellPoints;
 
   // constructor and destructor are kept private
@@ -276,6 +298,7 @@ private:
     vtkFloatArray *);
   void SetBlockName(vtkMultiBlockDataSet *, unsigned int, const char *);
   void TruncateFaceOwner();
+  void CalculateReciprocalDelta(const vtkFoamIntVectorVector *);
 
   // move additional points for decomposed cells
   vtkPoints *MoveInternalMesh(vtkUnstructuredGrid *, vtkFloatArray *);
@@ -315,24 +338,6 @@ vtkStandardNewMacro(vtkOpenFOAMReaderPrivate);
 
 //-----------------------------------------------------------------------------
 // struct vtkFoamIntArrayVector
-struct vtkOpenFOAMReaderPrivate::vtkFoamIntArrayVector
-  : public vtkstd::vector<vtkIntArray *>
-{
-private:
-  typedef vtkstd::vector<vtkIntArray *> Superclass;
-
-public:
-  ~vtkFoamIntArrayVector()
-  {
-    for(size_t arrayI = 0; arrayI < Superclass::size(); arrayI++)
-      {
-      if(Superclass::operator[](arrayI))
-        {
-        Superclass::operator[](arrayI)->Delete();
-        }
-      }
-  }
-};
 
 //-----------------------------------------------------------------------------
 // struct vtkFoamIntVectorVector
@@ -3196,6 +3201,7 @@ vtkOpenFOAMReaderPrivate::vtkOpenFOAMReaderPrivate()
   this->InternalMesh = NULL;
   this->BoundaryMesh = NULL;
   this->BoundaryPointMap = NULL;
+  this->ReciprocalDelta = NULL;
   this->FaceOwner = NULL;
   this->PointZoneMesh = NULL;
   this->FaceZoneMesh = NULL;
@@ -3204,6 +3210,7 @@ vtkOpenFOAMReaderPrivate::vtkOpenFOAMReaderPrivate()
   // for decomposing polyhedra
   this->NumAdditionalCells = 0;
   this->AdditionalCellIds = NULL;
+  this->NumAdditionalCells = NULL;
   this->AdditionalCellPoints = NULL;
 }
 
@@ -3238,6 +3245,11 @@ void vtkOpenFOAMReaderPrivate::ClearInternalMeshes()
     this->AdditionalCellIds->Delete();
     this->AdditionalCellIds = NULL;
     }
+  if(this->NumAdditionalCells != NULL)
+    {
+    this->NumAdditionalCells->Delete();
+    this->NumAdditionalCells = NULL;
+    }
   delete this->AdditionalCellPoints;
   this->AdditionalCellPoints = NULL;
 
@@ -3268,6 +3280,8 @@ void vtkOpenFOAMReaderPrivate::ClearBoundaryMeshes()
 
   delete this->BoundaryPointMap;
   this->BoundaryPointMap = NULL;
+  delete this->ReciprocalDelta;
+  this->ReciprocalDelta = NULL;
 
   if(this->InternalPoints != NULL)
     {
@@ -4435,6 +4449,13 @@ bool vtkOpenFOAMReaderPrivate::CheckFacePoints(
     {
     const int nPoints = facePoints->GetSize(faceI);
     const int *pointList = facePoints->operator[](faceI);
+    if(nPoints < 3)
+      {
+      vtkErrorMacro(<< "Face " << faceI << " has only " << nPoints
+        << " points which is not enough to constitute a face"
+        " (a face must have at least 3 points)");
+      return false;
+      }
     for(int pointI = 0; pointI < nPoints; pointI++)
       {
       const int p = pointList[pointI];
@@ -4463,7 +4484,7 @@ void vtkOpenFOAMReaderPrivate::InsertCellsToGrid(
   const int nCells
     = (cellList == NULL ? this->NumCells : cellList->GetNumberOfTuples());
   int nAdditionalPoints = 0;
-  this->NumAdditionalCells = 0;
+  this->NumTotalAdditionalCells = 0;
 
   // alias
   const vtkFoamIntVectorVector& facePoints = *facesPoints;
@@ -5003,7 +5024,8 @@ void vtkOpenFOAMReaderPrivate::InsertCellsToGrid(
             }
           }
         polyCellPoints->Squeeze();
-        float weight = 1.0F / static_cast<float>(polyCellPoints->GetDataSize());
+        const float weight
+          = 1.0F / static_cast<float>(polyCellPoints->GetDataSize());
         centroid[0] *= weight;
         centroid[1] *= weight;
         centroid[2] *= weight;
@@ -5113,11 +5135,9 @@ void vtkOpenFOAMReaderPrivate::InsertCellsToGrid(
             }
           }
         nAdditionalPoints++;
-	int tuple[2];
-	tuple[0] = nAdditionalCells;
-	tuple[1] = cellId;
-	this->AdditionalCellIds->InsertNextTupleValue(tuple);
-	this->NumAdditionalCells += nAdditionalCells;
+	this->AdditionalCellIds->InsertNextValue(cellId);
+        this->NumAdditionalCells->InsertNextValue(nAdditionalCells);
+	this->NumTotalAdditionalCells += nAdditionalCells;
         }
       else // don't decompose; use VTK_CONVEX_PONIT_SET
         {
@@ -5211,7 +5231,7 @@ vtkUnstructuredGrid *vtkOpenFOAMReaderPrivate::MakeInternalMesh(
     {
     // for polyhedral decomposition
     this->AdditionalCellIds = vtkIntArray::New();
-    this->AdditionalCellIds->SetNumberOfComponents(2);
+    this->NumAdditionalCells = vtkIntArray::New();
     this->AdditionalCellPoints = new vtkFoamIntArrayVector;
 
     vtkIdTypeArray *additionalCells = vtkIdTypeArray::New();
@@ -5223,6 +5243,7 @@ vtkUnstructuredGrid *vtkOpenFOAMReaderPrivate::MakeInternalMesh(
     // for polyhedral decomposition
     pointArray->Squeeze();
     this->AdditionalCellIds->Squeeze();
+    this->NumAdditionalCells->Squeeze();
     additionalCells->Squeeze();
 
     // insert decomposed cells into mesh
@@ -5379,9 +5400,11 @@ vtkMultiBlockDataSet *vtkOpenFOAMReaderPrivate::MakeBoundaryMesh(
 
   if(this->Parent->GetCreateCellToPoint())
     {
+    const int boundaryStartFace
+      = (this->BoundaryDict.size() > 0 ? this->BoundaryDict[0].StartFace : 0);
     this->AllBoundaries = vtkPolyData::New();
     this->AllBoundaries->Allocate(facesPoints->GetNumberOfElements()
-      - this->BoundaryDict[0].StartFace);
+      - boundaryStartFace);
     }
   this->BoundaryPointMap = new vtkFoamIntArrayVector;
 
@@ -5667,7 +5690,8 @@ vtkMultiBlockDataSet *vtkOpenFOAMReaderPrivate::MakeBoundaryMesh(
 // truncate face owner to have only boundary face info
 void vtkOpenFOAMReaderPrivate::TruncateFaceOwner()
 {
-  const int boundaryStartFace = this->BoundaryDict[0].StartFace;
+  const int boundaryStartFace = this->BoundaryDict.size() > 0
+    ? this->BoundaryDict[0].StartFace : this->FaceOwner->GetNumberOfTuples();
   // all the boundary faces
   const int nBoundaryFaces
     = this->FaceOwner->GetNumberOfTuples() - boundaryStartFace;
@@ -5679,7 +5703,7 @@ void vtkOpenFOAMReaderPrivate::TruncateFaceOwner()
 
 //-----------------------------------------------------------------------------
 // this is necessary due to the strange vtkDataArrayTemplate::Resize()
-// implementation when the array size is extended
+// implementation when the array size is to be extended
 template <typename T1, typename T2>
 bool vtkOpenFOAMReaderPrivate::ExtendArray(T1 *array, const int nTuples)
 {
@@ -5693,6 +5717,114 @@ bool vtkOpenFOAMReaderPrivate::ExtendArray(T1 *array, const int nTuples)
     array->GetDataSize() * array->GetDataTypeSize());
   array->SetArray(static_cast<T2 *>(ptr), newSize, 0);
   return true;
+}
+
+//-----------------------------------------------------------------------------
+void vtkOpenFOAMReaderPrivate::CalculateReciprocalDelta(
+  const vtkFoamIntVectorVector *facesPoints)
+{
+  const int nBoundaries = this->BoundaryDict.size();
+  vtkFloatArray *allPoints
+    = vtkFloatArray::SafeDownCast(this->InternalMesh->GetPoints()->GetData());
+
+  this->ReciprocalDelta = new vtkFoamFloatArrayVector;
+  for(int boundaryI = 0; boundaryI < nBoundaries; boundaryI++)
+    {
+    const vtkFoamBoundaryEntry &beI = this->BoundaryDict[boundaryI];
+    if(beI.BoundaryType != vtkFoamBoundaryEntry::PHYSICAL)
+      {
+      this->ReciprocalDelta->push_back(NULL);
+      continue;
+      }
+
+    this->ReciprocalDelta->push_back(vtkFloatArray::New());
+    vtkFloatArray *rd = this->ReciprocalDelta->back();
+    rd->SetNumberOfTuples(beI.NFaces);
+    const int boundaryStartFace = this->BoundaryDict[0].StartFace;
+    const int startFace = beI.StartFace;
+    const int endFace = startFace + beI.NFaces;
+    for(int faceI = startFace; faceI < endFace; faceI++)
+      {
+      // calculate patchInternal cell centroid
+      const int cellId = this->FaceOwner->GetValue(faceI - boundaryStartFace);
+      const int polyCellId = this->AdditionalCellIds->LookupValue(cellId);
+      float cellCentroid0, cellCentroid1, cellCentroid2;
+      if(this->Parent->GetDecomposePolyhedra()
+        && this->AdditionalCellPoints != NULL && polyCellId >= 0)
+        {
+        const float *cellCentroidPtr
+          = allPoints->GetPointer(3 * (this->NumPoints + polyCellId));
+        cellCentroid0 = cellCentroidPtr[0];
+        cellCentroid1 = cellCentroidPtr[1];
+        cellCentroid2 = cellCentroidPtr[2];
+        }
+      else
+        {
+        cellCentroid0 = cellCentroid1 = cellCentroid2 = 0.0F;
+        vtkIdType nPoints, *pointIds;
+        this->InternalMesh->GetCellPoints(cellId, nPoints, pointIds);
+        for(int pointI = 0; pointI < nPoints; pointI++)
+          {
+          const float *point = allPoints->GetPointer(3 * pointIds[pointI]);
+          cellCentroid0 += point[0];
+          cellCentroid1 += point[1];
+          cellCentroid2 += point[2];
+          }
+        const float weight = 1.0F / static_cast<float>(nPoints);
+        cellCentroid0 *= weight;
+        cellCentroid1 *= weight;
+        cellCentroid2 *= weight;
+        }
+
+      // calculate face centroid
+      float faceCentroid0 = 0.0F, faceCentroid1 = 0.0F, faceCentroid2 = 0.0F;
+      const int *facePoints = facesPoints->operator[](faceI);
+      const int nFacePoints = facesPoints->GetSize(faceI);
+      for(int pointI = 0; pointI < nFacePoints; pointI++)
+        {
+        const float *point = allPoints->GetPointer(3 * facePoints[pointI]);
+        faceCentroid0 += point[0];
+        faceCentroid1 += point[1];
+        faceCentroid2 += point[2];
+        }
+      const float weight = 1.0F / static_cast<float>(nFacePoints);
+      faceCentroid0 *= weight;
+      faceCentroid1 *= weight;
+      faceCentroid2 *= weight;
+
+      // calculate face normal
+      const float *point0 = allPoints->GetPointer(3 * facePoints[0]);
+      const float *point1 = allPoints->GetPointer(3 * facePoints[1]);
+      const float v00 = point0[0] - point1[0];
+      const float v01 = point0[1] - point1[1];
+      const float v02 = point0[2] - point1[2];
+      const float *point2 = allPoints->GetPointer(3 * facePoints[2]);
+      const float v10 = point2[0] - point1[0];
+      const float v11 = point2[1] - point1[1];
+      const float v12 = point2[2] - point1[2];
+      float n0 = v11 * v02 - v12 * v01;
+      float n1 = v12 * v00 - v10 * v02;
+      float n2 = v10 * v01 - v11 * v00;
+      float nWeight = sqrt(n0 * n0 + n1 * n1 + n2 * n2);
+
+      const float delta0 = faceCentroid0 - cellCentroid0;
+      const float delta1 = faceCentroid1 - cellCentroid1;
+      const float delta2 = faceCentroid2 - cellCentroid2;
+      float delta;
+      if(nWeight == 0.0F)
+        {
+        // use raw distance
+        delta = sqrt(delta0 * delta0 + delta1 * delta1 + delta2 * delta2);
+        }
+      else
+        {
+        // use inner product
+        delta = (delta0 * n0 + delta1 * n1 + delta2 * n2) / nWeight;
+        }
+      rd->SetValue(faceI - beI.StartFace, delta == 0.0F ? delta : 1.0F / delta);
+      }
+    }
+  this->AdditionalCellIds->ClearLookup();
 }
 
 //-----------------------------------------------------------------------------
@@ -5718,7 +5850,7 @@ vtkPoints *vtkOpenFOAMReaderPrivate::MoveInternalMesh(
         centroid[1] += pointK[1];
         centroid[2] += pointK[2];
         }
-      float weight
+      const float weight
         = (nCellPoints ? 1.0F / static_cast<float>(nCellPoints) : 0.0F);
       centroid[0] *= weight;
       centroid[1] *= weight;
@@ -6255,14 +6387,13 @@ void vtkOpenFOAMReaderPrivate::GetVolFieldAtTimeStep(
         {
         // add values for decomposed cells
         this->ExtendArray<vtkFloatArray, float>(iData,
-          this->NumCells + this->NumAdditionalCells);
+          this->NumCells + this->NumTotalAdditionalCells);
         const int nTuples = this->AdditionalCellIds->GetNumberOfTuples();
-	const int *cellIdsPtr = this->AdditionalCellIds->GetPointer(0);
         int additionalCellI = this->NumCells;
         for(int tupleI = 0; tupleI < nTuples; tupleI++)
           {
-          const int nCells = cellIdsPtr[2 * tupleI];
-          const vtkIdType cellId = cellIdsPtr[2 * tupleI + 1];
+          const int nCells = this->NumAdditionalCells->GetValue(tupleI);
+          const vtkIdType cellId = this->AdditionalCellIds->GetValue(tupleI);
 	  for(int cellI = 0; cellI < nCells; cellI++)
 	    {
             iData->InsertTuple(additionalCellI++, cellId, iData);
@@ -6291,11 +6422,10 @@ void vtkOpenFOAMReaderPrivate::GetVolFieldAtTimeStep(
           {
           // assign cell values to additional points
           const int nPoints = this->AdditionalCellIds->GetNumberOfTuples();
-	  const int *cellIdsPtr = this->AdditionalCellIds->GetPointer(0);
 	  for(int pointI = 0; pointI < nPoints; pointI++)
 	    {
 	    ctpData->SetTuple(this->NumPoints + pointI,
-              cellIdsPtr[2 * pointI + 1], iData);
+              this->AdditionalCellIds->GetValue(pointI), iData);
 	    }
           }
         }
@@ -7378,6 +7508,7 @@ int vtkOpenFOAMReaderPrivate::RequestData(vtkMultiBlockDataSet *output,
         }
       return 0;
       }
+    this->CalculateReciprocalDelta(facePoints);
     }
 
   delete facePoints;
