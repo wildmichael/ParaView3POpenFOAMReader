@@ -472,6 +472,11 @@ protected:
         break;
       case STRING: case IDENTIFIER:
         this->String = new vtkStdString(*value.String);
+	break;
+      // required to suppress the 'enumeration value not handled' warning by
+      // g++ when compiled with -Wall
+      default:
+	break;
       }
   }
 
@@ -539,6 +544,10 @@ public:
       case STRING: case IDENTIFIER:
         str << *value.String;
         break;
+      // required to suppress the 'enumeration value not handled' warning by
+      // g++ when compiled with -Wall
+      default:
+	break;
       }
     return str;
   }
@@ -2658,6 +2667,10 @@ vtkOpenFOAMReaderPrivate::vtkFoamEntryValue::vtkFoamEntryValue(
       break;
     case EMPTYLIST:
       break;
+    // required to suppress the 'enumeration value not handled' warning by
+    // g++ when compiled with -Wall
+    default:
+      break;
     }
 }
 
@@ -2683,6 +2696,10 @@ void vtkOpenFOAMReaderPrivate::vtkFoamEntryValue::Clear()
       case DICTIONARY:
         delete this->DictPtr;
         break;
+      // required to suppress the 'enumeration value not handled' warning by
+      // g++ when compiled with -Wall
+      default:
+	break;
       }
     }
 }
