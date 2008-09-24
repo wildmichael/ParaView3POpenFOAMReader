@@ -7886,8 +7886,8 @@ int vtkOpenFOAMReader::RequestInformation(vtkInformation *vtkNotUsed(request),
     }
 
   if(this->Parent == this && (*this->FileNameOld != this->FileName
-    || this->ListTimeStepsByControlDict != this->ListTimeStepsByControlDictOld)
-    || this->Refresh)
+    || this->ListTimeStepsByControlDict != this->ListTimeStepsByControlDictOld
+    || this->Refresh))
     {
     // retain selection status when just refreshing a case
     if(*this->FileNameOld != this->FileName)
