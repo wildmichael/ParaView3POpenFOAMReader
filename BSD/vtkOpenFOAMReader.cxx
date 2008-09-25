@@ -298,7 +298,9 @@ private:
     vtkFloatArray *);
   void SetBlockName(vtkMultiBlockDataSet *, unsigned int, const char *);
   void TruncateFaceOwner();
+#if 0
   void CalculateReciprocalDelta(const vtkFoamIntVectorVector *);
+#endif
 
   // move additional points for decomposed cells
   vtkPoints *MoveInternalMesh(vtkUnstructuredGrid *, vtkFloatArray *);
@@ -5736,6 +5738,7 @@ bool vtkOpenFOAMReaderPrivate::ExtendArray(T1 *array, const int nTuples)
   return true;
 }
 
+#if 0
 //-----------------------------------------------------------------------------
 void vtkOpenFOAMReaderPrivate::CalculateReciprocalDelta(
   const vtkFoamIntVectorVector *facesPoints)
@@ -5843,6 +5846,7 @@ void vtkOpenFOAMReaderPrivate::CalculateReciprocalDelta(
     }
   this->AdditionalCellIds->ClearLookup();
 }
+#endif
 
 //-----------------------------------------------------------------------------
 // move polyhedral cell centroids
@@ -7525,7 +7529,9 @@ int vtkOpenFOAMReaderPrivate::RequestData(vtkMultiBlockDataSet *output,
         }
       return 0;
       }
+#if 0
     this->CalculateReciprocalDelta(facePoints);
+#endif
     }
 
   delete facePoints;
