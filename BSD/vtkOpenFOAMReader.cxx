@@ -223,7 +223,9 @@ private:
   vtkUnstructuredGrid *InternalMesh;
   vtkMultiBlockDataSet *BoundaryMesh;
   vtkFoamIntArrayVector *BoundaryPointMap;
+#if 0
   vtkFoamFloatArrayVector *ReciprocalDelta;
+#endif
   vtkFoamBoundaryDict BoundaryDict;
   vtkMultiBlockDataSet *PointZoneMesh;
   vtkMultiBlockDataSet *FaceZoneMesh;
@@ -3220,7 +3222,9 @@ vtkOpenFOAMReaderPrivate::vtkOpenFOAMReaderPrivate()
   this->InternalMesh = NULL;
   this->BoundaryMesh = NULL;
   this->BoundaryPointMap = NULL;
+#if 0
   this->ReciprocalDelta = NULL;
+#endif
   this->FaceOwner = NULL;
   this->PointZoneMesh = NULL;
   this->FaceZoneMesh = NULL;
@@ -3299,8 +3303,10 @@ void vtkOpenFOAMReaderPrivate::ClearBoundaryMeshes()
 
   delete this->BoundaryPointMap;
   this->BoundaryPointMap = NULL;
+#if 0
   delete this->ReciprocalDelta;
   this->ReciprocalDelta = NULL;
+#endif
 
   if(this->InternalPoints != NULL)
     {
