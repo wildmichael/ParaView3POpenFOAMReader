@@ -14,7 +14,7 @@
 =========================================================================*/
 // .NAME vtkOpenFOAMReader - reads a dataset in OpenFOAM format
 // .SECTION Description
-// vtkPOpenFOAMReader creates a multiblock dataset. It reads mesh
+// vtkOpenFOAMReader creates a multiblock dataset. It reads mesh
 // information and time dependent data.  The polyMesh folders contain
 // mesh information. The time folders contain transient data for the
 // cells. Each folder can contain any number of data files.

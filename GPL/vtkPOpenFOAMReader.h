@@ -19,7 +19,19 @@
 =========================================================================*/
 // Copyright (c) 2008 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
 // All rights reserved.
-// Date: 2008-08-31
+// Date: 2008-09-27
+
+// .NAME vtkPOpenFOAMReader - reads a decomposed dataset in OpenFOAM format
+// .SECTION Description
+// vtkPOpenFOAMReader creates a multiblock dataset. It reads
+// parallel-decomposed mesh information and time dependent data.  The
+// polyMesh folders contain mesh information. The time folders contain
+// transient data for the cells. Each folder can contain any number of
+// data files.
+
+// .SECTION Thanks
+// This class was developed by Takuya Oshima at Niigata University,
+// Japan (oshima@eng.niigata-u.ac.jp).
 
 #ifndef __vtkPOpenFOAMReader_h
 #define __vtkPOpenFOAMReader_h
@@ -40,8 +52,14 @@ public:
 
   void PrintSelf(ostream &os, vtkIndent indent);
 
+  // Description:
+  // Set and get case type. 0 = decomposed case, 1 = reconstructed case.
   void SetCaseType(const int t);
   vtkGetMacro(CaseType, caseType);
+  // Description:
+  // Set and get the controller.
+  virtual void SetController(vtkMultiProcessController *);
+  vtkGetObjectMacro(Controller, vtkMultiProcessController);
 
 protected:
   vtkPOpenFOAMReader();
@@ -53,18 +71,22 @@ protected:
     vtkInformationVector *);
 
 private:
+  vtkMultiProcessController *Controller;
   caseType CaseType;
   unsigned long MTimeOld;
   int MaximumNumberOfPieces;
+  int NumProcesses;
+  int ProcessId;
 
   vtkPOpenFOAMReader(const vtkPOpenFOAMReader &); // Not implemented.
   void operator=(const vtkPOpenFOAMReader &); // Not implemented.
 
   void GatherMetaData();
-  void Broadcast(vtkStringArray *, vtkMultiProcessController *);
-  void Gather(vtkDataArraySelection *, vtkMultiProcessController *);
-  void AllGather(vtkStringArray *, vtkMultiProcessController *);
-  void AllGather(vtkDataArraySelection *, vtkMultiProcessController *);
+  void BroadcastStatus(int &);
+  void Broadcast(vtkStringArray *);
+  void Gather(vtkDataArraySelection *);
+  void AllGather(vtkStringArray *);
+  //void AllGather(vtkDataArraySelection *);
 };
 
 #endif

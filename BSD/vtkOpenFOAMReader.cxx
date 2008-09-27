@@ -614,9 +614,9 @@ protected:
     WasNewline(true),
 #endif
     Inbuf(NULL), Outbuf(NULL), BufPtr(NULL), BufEndPtr(NULL)
-    {
-      this->Z.zalloc = Z_NULL; this->Z.zfree = Z_NULL; this->Z.opaque = Z_NULL; 
-    }
+  {
+    this->Z.zalloc = Z_NULL; this->Z.zfree = Z_NULL; this->Z.opaque = Z_NULL; 
+  }
 
   void Reset()
   {
