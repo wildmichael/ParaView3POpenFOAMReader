@@ -25,7 +25,7 @@
 // * Minor performance enhancements
 // by Philippose Rajan (sarith@rocketmail.com)
 
-// version 2008-09-06
+// version 2008-09-27
 
 // Hijack the CRC routine of zlib to omit CRC check for gzipped files
 // (on OSes other than Windows where the mechanism doesn't work due
@@ -114,6 +114,7 @@ class VTK_IO_EXPORT vtkOpenFOAMReaderPrivate : public vtkObject
 public:
   static vtkOpenFOAMReaderPrivate *New();
   vtkTypeRevisionMacro(vtkOpenFOAMReaderPrivate, vtkObject);
+  void PrintSelf(ostream &, vtkIndent);
 
   vtkDoubleArray *GetTimeValues() { return this->TimeValues; }
   vtkGetMacro(TimeStep, int);
@@ -339,9 +340,6 @@ private:
 
 vtkCxxRevisionMacro(vtkOpenFOAMReaderPrivate, "$Revision: 1.00 $");
 vtkStandardNewMacro(vtkOpenFOAMReaderPrivate);
-
-//-----------------------------------------------------------------------------
-// struct vtkFoamIntArrayVector
 
 //-----------------------------------------------------------------------------
 // struct vtkFoamIntVectorVector
@@ -3249,6 +3247,25 @@ vtkOpenFOAMReaderPrivate::~vtkOpenFOAMReaderPrivate()
   this->LagrangianFieldFiles->Delete();
 
   this->ClearMeshes();
+}
+
+void vtkOpenFOAMReaderPrivate::PrintSelf(ostream &os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os, indent);
+  os << indent << "Case Path: " << (this->CasePath.length()
+    ? this->CasePath.c_str() : "(none)") << endl;
+  os << indent << "Region Name: " << (this->RegionName.length()
+    ? this->RegionName.c_str() : "(none)") << endl;
+  os << indent << "Processor Name: " << (this->ProcessorName.length()
+    ? this->ProcessorName.c_str() : "(none)") << endl;
+  if(this->TimeValues)
+    {
+    os << indent << "Number of Time Steps: "
+      << this->TimeValues->GetNumberOfTuples() << endl;
+    }
+  os << indent << "Time Step: " << this->TimeStep << endl;
+  os << indent << "Number of Cells: " << this->NumCells << endl;
+  os << indent << "Number of Points: " << this->NumPoints << endl;
 }
 
 void vtkOpenFOAMReaderPrivate::ClearInternalMeshes()
@@ -7823,7 +7840,27 @@ void vtkOpenFOAMReader::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
   os << indent << "File Name: "
-     << (this->FileName ? this->FileName : "(none)") << "\n";
+     << (this->FileName ? this->FileName : "(none)") << endl;
+  os << indent << "Refresh: " << this->Refresh << endl;
+  os << indent << "CreateCellToPoint: " << this->CreateCellToPoint << endl;
+  os << indent << "CacheMesh: " << this->CacheMesh << endl;
+  os << indent << "DecomposePolyhedra: " << this->DecomposePolyhedra << endl;
+  os << indent << "PositionsIsIn13Format: " << this->PositionsIsIn13Format
+     << endl;
+  os << indent << "ReadZones: " << this->ReadZones << endl;
+  os << indent << "ListTimeStepsByControlDict: "
+     << this->ListTimeStepsByControlDict << endl;
+  os << indent << "AddDimensionsToArrayNames: "
+     << this->AddDimensionsToArrayNames << endl;
+
+  this->Readers->InitTraversal();
+  vtkObject *reader;
+  while((reader = this->Readers->GetNextItemAsObject()) != NULL)
+    {
+    os << indent << "Reader instance " << static_cast<void *>(reader) << ": \n";
+    reader->PrintSelf(os, indent.GetNextIndent());
+    }
+
   return;
 }
 

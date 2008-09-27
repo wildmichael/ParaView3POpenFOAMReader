@@ -27,7 +27,7 @@
 // performance/compatibility enhancements by Takuya Oshima
 // (oshima@eng.niigata-u.ac.jp) and Philippose Rajan (sarith@rocketmail.com).
 
-// version 2008-08-28
+// version 2008-09-27
 
 #ifndef __vtkOpenFOAMReader_h
 #define __vtkOpenFOAMReader_h
@@ -47,11 +47,11 @@ class VTK_IO_EXPORT vtkOpenFOAMReader : public vtkMultiBlockDataSetAlgorithm
 public:
   static vtkOpenFOAMReader *New();
   vtkTypeRevisionMacro(vtkOpenFOAMReader, vtkMultiBlockDataSetAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream &, vtkIndent);
 
   // Description:
   // Determine if the file can be readed with this reader.
-  int CanReadFile(const char* fname);
+  int CanReadFile(const char *);
 
   // Description:
   // Set/Get the filename.
@@ -101,7 +101,7 @@ public:
   // Description:
   // Get the name of the  point array with the given index in
   // the input.
-  const char* GetPointArrayName(int index)
+  const char *GetPointArrayName(int index)
   { return this->GetSelectionArrayName(this->PointDataArraySelection, index); }
 
   // Description:

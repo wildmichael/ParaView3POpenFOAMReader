@@ -19,7 +19,7 @@
 =========================================================================*/
 // Copyright (c) 2008 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
 // All rights reserved.
-// Date: 2008-09-02
+// Date: 2008-09-27
 
 #include "vtkPOpenFOAMReader.h"
 
@@ -59,8 +59,10 @@ vtkPOpenFOAMReader::~vtkPOpenFOAMReader()
 void vtkPOpenFOAMReader::PrintSelf(ostream &os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-  os << indent << "MTimeOld: " << this->MTimeOld;
-  os << indent << "MaximumNumberOfPieces: " << this->MaximumNumberOfPieces;
+  os << indent << "Case Type: " << this->CaseType << endl;
+  os << indent << "MTimeOld: " << this->MTimeOld << endl;
+  os << indent << "Maximum Number of Pieces: " << this->MaximumNumberOfPieces
+    << endl;
 }
 
 //-----------------------------------------------------------------------------
@@ -368,7 +370,7 @@ void vtkPOpenFOAMReader::GatherMetaData()
 }
 
 //-----------------------------------------------------------------------------
-// Broadcast a vtkStringArray on process 0 to all processes
+// Broadcast a vtkStringArray in process 0 to all processes
 void vtkPOpenFOAMReader::Broadcast(vtkStringArray *sa,
   vtkMultiProcessController *ctrl)
 {
@@ -408,7 +410,7 @@ void vtkPOpenFOAMReader::Broadcast(vtkStringArray *sa,
 }
 
 //-----------------------------------------------------------------------------
-// Gather vtkDataArraySelections on all processes to process 0
+// Gather vtkDataArraySelections in all processes to process 0
 void vtkPOpenFOAMReader::Gather(vtkDataArraySelection *s,
   vtkMultiProcessController *ctrl)
 {
@@ -548,6 +550,7 @@ void vtkPOpenFOAMReader::AllGather(vtkDataArraySelection *s,
   delete [] contents;
   delete [] lengths;
   delete [] offsets;
+  // do not RemoveAllArray so that the previous arrays are preserved
   // s->RemoveAllArrays();
   for(int idx = 0; idx < totalLength; idx += strlen(allContents + idx + 1) + 2)
     {
