@@ -8254,6 +8254,10 @@ bool vtkOpenFOAMReader::SetTimeValue(const double timeValue)
 //-----------------------------------------------------------------------------
 vtkDoubleArray *vtkOpenFOAMReader::GetTimeValues()
 {
+  if(this->Readers->GetNumberOfItems() <= 0)
+    {
+    return NULL;
+    }
   vtkOpenFOAMReaderPrivate *reader = vtkOpenFOAMReaderPrivate::SafeDownCast(
     this->Readers->GetItemAsObject(0));
   return reader != NULL ? reader->GetTimeValues() : NULL;

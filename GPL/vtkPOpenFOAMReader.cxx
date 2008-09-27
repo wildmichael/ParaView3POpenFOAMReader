@@ -107,7 +107,35 @@ int vtkPOpenFOAMReader::RequestInformation(vtkInformation *request,
       ret = this->Superclass::RequestInformation(request, inputVector,
         outputVector);
       }
-    this->BroadcastStatus(ret);
+    if(this->NumProcesses > 1)
+      {
+      // if there was an error in process 0 abort all processes
+      this->BroadcastStatus(ret);
+      if(ret == 0)
+        {
+        vtkErrorMacro(<< "The master process returned an error.");
+        return 0;
+        }
+
+      vtkDoubleArray *timeValues;
+      if(this->ProcessId == 0)
+	{
+        timeValues = this->Superclass::GetTimeValues();
+	}
+      else
+	{
+        timeValues = vtkDoubleArray::New();
+	}
+      this->Controller->Broadcast(timeValues, 0);
+      if(this->ProcessId != 0)
+        {
+        this->Superclass::SetTimeInformation(outputVector, timeValues);
+        timeValues->Delete();
+	this->Superclass::Refresh = false;
+        }
+      this->GatherMetaData(); // pvserver deadlocks without this
+      }
+
     return ret;
     }
 
@@ -295,6 +323,7 @@ int vtkPOpenFOAMReader::RequestData(vtkInformation *request,
       ret = this->Superclass::RequestData(request, inputVector, outputVector);
       }
     this->BroadcastStatus(ret);
+    this->GatherMetaData();
     return ret;
     }
 
@@ -393,10 +422,10 @@ void vtkPOpenFOAMReader::GatherMetaData()
 {
   if(this->NumProcesses > 1)
     {
-    this->Gather(this->Superclass::PatchDataArraySelection);
-    this->Gather(this->Superclass::CellDataArraySelection);
-    this->Gather(this->Superclass::PointDataArraySelection);
-    this->Gather(this->Superclass::LagrangianDataArraySelection);
+    this->AllGather(this->Superclass::PatchDataArraySelection);
+    this->AllGather(this->Superclass::CellDataArraySelection);
+    this->AllGather(this->Superclass::PointDataArraySelection);
+    this->AllGather(this->Superclass::LagrangianDataArraySelection);
     // omit removing duplicated entries of LagrangianPaths as well
     // when the number of processes is 1 assuming there's no duplicate
     // entry within a process
@@ -443,6 +472,7 @@ void vtkPOpenFOAMReader::Broadcast(vtkStringArray *sa)
   delete [] contents;
 }
 
+#if 0
 //-----------------------------------------------------------------------------
 // Gather vtkDataArraySelections in all processes to process 0
 void vtkPOpenFOAMReader::Gather(vtkDataArraySelection *s)
@@ -506,6 +536,7 @@ void vtkPOpenFOAMReader::Gather(vtkDataArraySelection *s)
     delete [] allContents;
     }
 }
+#endif
 
 //-----------------------------------------------------------------------------
 // AllGather vtkStringArray from and to all processes
@@ -550,7 +581,6 @@ void vtkPOpenFOAMReader::AllGather(vtkStringArray *s)
   delete [] allContents;
 }
 
-#if 0
 //-----------------------------------------------------------------------------
 // AllGather vtkDataArraySelections from and to all processes
 void vtkPOpenFOAMReader::AllGather(vtkDataArraySelection *s)
@@ -599,4 +629,3 @@ void vtkPOpenFOAMReader::AllGather(vtkDataArraySelection *s)
     }
   delete [] allContents;
 }
-#endif

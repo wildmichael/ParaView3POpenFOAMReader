@@ -84,9 +84,9 @@ private:
   void GatherMetaData();
   void BroadcastStatus(int &);
   void Broadcast(vtkStringArray *);
-  void Gather(vtkDataArraySelection *);
+  //void Gather(vtkDataArraySelection *);
   void AllGather(vtkStringArray *);
-  //void AllGather(vtkDataArraySelection *);
+  void AllGather(vtkDataArraySelection *);
 };
 
 #endif
