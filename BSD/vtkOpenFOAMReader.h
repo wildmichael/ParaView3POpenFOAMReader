@@ -35,6 +35,7 @@
 #include "vtkMultiBlockDataSetAlgorithm.h"
 
 class vtkCollection;
+class vtkCharArray;
 class vtkDataArraySelection;
 class vtkDoubleArray;
 class vtkStdString;
@@ -251,6 +252,7 @@ protected:
   int AddDimensionsToArrayNames;
 
   char *FileName;
+  vtkCharArray *CasePath;
   vtkCollection *Readers;
 
   // DataArraySelection for Patch / Region Data
@@ -291,6 +293,7 @@ protected:
 
   void CreateCasePath(vtkStdString &, vtkStdString &);
   void SetTimeInformation(vtkInformationVector *, vtkDoubleArray *);
+  void CreateCharArrayFromString(vtkCharArray *, const char *, vtkStdString &);
   void UpdateStatus();
   void UpdateProgress(double);
 

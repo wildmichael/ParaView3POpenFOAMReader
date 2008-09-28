@@ -25,7 +25,7 @@
 // * Minor performance enhancements
 // by Philippose Rajan (sarith@rocketmail.com)
 
-// version 2008-09-27
+// version 2008-09-28
 
 // Hijack the CRC routine of zlib to omit CRC check for gzipped files
 // (on OSes other than Windows where the mechanism doesn't work due
@@ -7762,6 +7762,9 @@ vtkOpenFOAMReader::vtkOpenFOAMReader()
   this->FileName = NULL;
   this->FileNameOld = new vtkStdString;
 
+  // Case path
+  this->CasePath = vtkCharArray::New();
+
   // Child readers
   this->Readers = vtkCollection::New();
 
@@ -7822,6 +7825,7 @@ vtkOpenFOAMReader::~vtkOpenFOAMReader()
   this->LagrangianDataArraySelection->Delete();
 
   this->Readers->Delete();
+  this->CasePath->Delete();
 
   this->SetFileName(0);
   delete this->FileNameOld;
@@ -7994,6 +7998,7 @@ int vtkOpenFOAMReader::RequestData(vtkInformation *vtkNotUsed(request),
 
   if(this->Parent == this)
     {
+    output->GetFieldData()->AddArray(this->CasePath);
     if(!this->MakeMetaDataAtTimeStep(false))
       {
       return 0;
@@ -8166,6 +8171,11 @@ int vtkOpenFOAMReader::MakeInformationVector(vtkInformationVector *outputVector,
   masterReader->Delete();
   this->Parent->NumberOfReaders += this->Readers->GetNumberOfItems();
 
+  if(this->Parent == this)
+    {
+    this->CreateCharArrayFromString(this->CasePath, "CasePath", casePath);
+    }
+
   return 1;
 }
 
@@ -8286,6 +8296,18 @@ int vtkOpenFOAMReader::MakeMetaDataAtTimeStep(const bool listNextTimeStep)
     lagrangianSelectionNames);
 
   return ret;
+}
+
+//-----------------------------------------------------------------------------
+void vtkOpenFOAMReader::CreateCharArrayFromString(vtkCharArray *array,
+  const char *name, vtkStdString &string)
+{
+  array->Initialize();
+  array->SetName(name);
+  const size_t len = string.length();
+  char *ptr = array->WritePointer(0, static_cast<vtkIdType>(len + 1));
+  memcpy(ptr, string.c_str(), len);
+  ptr[len] = '\0';
 }
 
 //-----------------------------------------------------------------------------

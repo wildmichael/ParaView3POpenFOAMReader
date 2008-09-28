@@ -27,10 +27,12 @@
 #include "vtkPOpenFOAMReader.h"
 
 #include "vtkAppendCompositeDataLeaves.h"
+#include "vtkCharArray.h"
 #include "vtkCollection.h"
 #include "vtkDataArraySelection.h"
 #include "vtkDirectory.h"
 #include "vtkDoubleArray.h"
+#include "vtkFieldData.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkIntArray.h"
@@ -166,13 +168,17 @@ int vtkPOpenFOAMReader::RequestInformation(vtkInformation *request,
 
     vtkStringArray *procNames = vtkStringArray::New();
     vtkDoubleArray *timeValues;
+
+    // recreate case information
+    vtkStdString masterCasePath, controlDictPath;
+    this->Superclass::CreateCasePath(masterCasePath, controlDictPath);
+
+    this->Superclass::CreateCharArrayFromString(this->Superclass::CasePath,
+      "CasePath", masterCasePath);
+
     int ret = 1;
     if(this->ProcessId == 0)
       {
-      // recreate case information
-      vtkStdString masterCasePath, controlDictPath;
-      this->Superclass::CreateCasePath(masterCasePath, controlDictPath);
-
       // search and list processor subdirectories
       vtkDirectory *dir = vtkDirectory::New();
       if(!dir->Open(masterCasePath.c_str()))
@@ -394,6 +400,9 @@ int vtkPOpenFOAMReader::RequestData(vtkInformation *request,
       output->ShallowCopy(append->GetOutput());
       }
     append->Delete();
+
+    // known issue: output for process without sub-reader will not have CasePath
+    output->GetFieldData()->AddArray(this->Superclass::CasePath);
     }
   else
     {
