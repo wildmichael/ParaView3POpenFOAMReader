@@ -52,13 +52,13 @@ Changes from the previous (20080728) version
 
 12. Added a feature to attach the case path as field data to the
   output. This can be accesible from a downstream programmable filter
-  by as follows.
+  as follows.
     input = self.GetInputDataObject(0, 0)
-    a = input.GetFieldData().GetArray("CasePath").GetPointer(0)
-    print a
-  NB: the case path is not added to the output of pvserver processes
-  whose IDs are equal or larger than the number of available processor
-  subdirectories.
+    casePath = input.GetFieldData().GetArray("CasePath").GetPointer(0)
+    print casePath
+  NB: in client/server mode, the case path is not added to the output
+  of pvserver processes whose IDs are equal or larger than the number
+  of available processor subdirectories.
 
 Installation
 ============
