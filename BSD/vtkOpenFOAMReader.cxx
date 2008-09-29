@@ -16,16 +16,21 @@
 // Technology Laboratory who developed this class.
 // Please address all comments to Terry Jordan (terry.jordan@sa.netl.doe.gov)
 //
-// Token-based FoamFile format lexer/parser, performance enhancements,
-// gzipped file and lagrangian field support by Takuya Oshima
-// (oshima@eng.niigata-u.ac.jp)
+// Token-based FoamFile format lexer/parser,
+// performance/stability/compatibility enhancements, gzipped file
+// support, lagrangian field support, variable timestep support,
+// builtin cell-to-point filter, pointField support, polyhedron
+// decomposition support, OF 1.5 extended format support, multiregion
+// support, old mesh format support, parallelization support for
+// decomposed cases in conjunction with vtkPOpenFOAMReader, et. al. by
+// Takuya Oshima of Niigata University, Japan (oshima@eng.niigata-u.ac.jp)
 //
 // * GUI Based selection of mesh regions and fields available in the case
 // * Minor bug fixes / Strict memory allocation checks
 // * Minor performance enhancements
 // by Philippose Rajan (sarith@rocketmail.com)
 
-// version 2008-09-28
+// version 2008-09-29
 
 // Hijack the CRC routine of zlib to omit CRC check for gzipped files
 // (on OSes other than Windows where the mechanism doesn't work due

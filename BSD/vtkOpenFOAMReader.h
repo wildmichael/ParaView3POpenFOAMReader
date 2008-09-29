@@ -23,11 +23,19 @@
 // Thanks to Terry Jordan of SAIC at the National Energy
 // Technology Laboratory who developed this class.
 // Please address all comments to Terry Jordan (terry.jordan@sa.netl.doe.gov).
-// Gzipped file, lagrangian field, new UI support and
-// performance/compatibility enhancements by Takuya Oshima
-// (oshima@eng.niigata-u.ac.jp) and Philippose Rajan (sarith@rocketmail.com).
+// GUI Based selection of mesh regions and fields available in the case,
+// minor bug fixes, strict memory allocation checks,
+// minor performance enhancements by Philippose Rajan (sarith@rocketmail.com).
+// Token-based FoamFile format lexer/parser,
+// performance/stability/compatibility enhancements, gzipped file
+// support, lagrangian field support, variable timestep support,
+// builtin cell-to-point filter, pointField support, polyhedron
+// decomposition support, OF 1.5 extended format support, multiregion
+// support, old mesh format support, parallelization support for
+// decomposed cases in conjunction with vtkPOpenFOAMReader, et. al. by
+// Takuya Oshima of Niigata University, Japan (oshima@eng.niigata-u.ac.jp).
 
-// version 2008-09-27
+// version 2008-09-29
 
 #ifndef __vtkOpenFOAMReader_h
 #define __vtkOpenFOAMReader_h
