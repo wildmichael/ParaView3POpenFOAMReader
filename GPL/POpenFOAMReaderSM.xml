@@ -219,6 +219,7 @@
   </IntVectorProperty>
 
   <Hints>
+    <Property name="FileName" show="1"/>
     <Property name="Refresh" show="0"/>
     <Property name="CaseType" show="0"/>
   </Hints>

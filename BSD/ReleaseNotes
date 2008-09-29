@@ -62,6 +62,8 @@ Changes from the previous (20080728) version
 
 13. Added labelField support for lagrangians.
 
+14. Added feature to change case without starting over.
+
 Installation
 ============
 
