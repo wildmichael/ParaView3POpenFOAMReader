@@ -55,10 +55,11 @@ Changes from the previous (20080728) version
   as follows.
     input = self.GetInputDataObject(0, 0)
     casePath = input.GetFieldData().GetArray("CasePath").GetPointer(0)
-    print casePath
   NB: in client/server mode, the case path is not added to the output
   of pvserver processes whose IDs are equal or larger than the number
   of available processor subdirectories.
+
+13. Added labelField support for lagrangians.
 
 Installation
 ============

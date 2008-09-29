@@ -2148,17 +2148,23 @@ public:
   {
     try
       {
-      if(io.GetClassName() == "scalarField") // lagrangian scalars
+      // lagrangian labels (cf. gnemdFoam/nanoNozzle)
+      if(io.GetClassName() == "labelField") 
+	{
+        this->ReadNonuniformList<LABELLIST, listTraits<vtkIntArray, int> >(io);
+	}
+      // lagrangian scalars
+      else if(io.GetClassName() == "scalarField")
         {
         this->ReadNonuniformList<SCALARLIST, listTraits<vtkFloatArray, float> >(
           io);
         }
-      // polyMesh/points, lagrangian vectors
       else if(io.GetClassName() == "sphericalTensorField")
         {
         this->ReadNonuniformList<VECTORLIST,
           vectorListTraits<vtkFloatArray, float, 1, false> >(io);
         }
+      // polyMesh/points, lagrangian vectors
       else if(io.GetClassName() == "vectorField")
         {
         this->ReadNonuniformList<VECTORLIST,
@@ -3424,7 +3430,7 @@ void vtkOpenFOAMReaderPrivate::GetFieldNames(const vtkStdString &tempPath,
         const vtkStdString& cn = io.GetClassName();
         if(isLagrangian)
           {
-          if(cn == "scalarField" || cn == "vectorField"
+          if(cn == "labelField" || cn == "scalarField" || cn == "vectorField"
             || cn == "sphericalTensorField" || cn == "symmTensorField"
             || cn == "tensorField")
             {
@@ -6971,7 +6977,8 @@ vtkMultiBlockDataSet* vtkOpenFOAMReaderPrivate::MakeLagrangianMesh()
 
       // set lagrangian values
       if(dict.GetType() != vtkFoamToken::SCALARLIST
-        && dict.GetType() != vtkFoamToken::VECTORLIST)
+        && dict.GetType() != vtkFoamToken::VECTORLIST
+        && dict.GetType() != vtkFoamToken::LABELLIST)
         {
         vtkErrorMacro(<< io.GetFileName().c_str()
           << ": Unsupported lagrangian field type "
@@ -6979,7 +6986,7 @@ vtkMultiBlockDataSet* vtkOpenFOAMReaderPrivate::MakeLagrangianMesh()
         continue;
         }
 
-      vtkFloatArray* lData = reinterpret_cast<vtkFloatArray *>(dict.Ptr());
+      vtkDataArray* lData = static_cast<vtkDataArray *>(dict.Ptr());
 
       // GetNumberOfTuples() works for both scalar and vector
       const int nParticles = lData->GetNumberOfTuples();
