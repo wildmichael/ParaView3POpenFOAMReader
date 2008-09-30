@@ -1,7 +1,7 @@
 <ServerManagerConfiguration>
   <ProxyGroup name="sources">
 <!-- Beginning of Parallel OF Reader -->
-<SourceProxy name="POpenFOAMReader" class="vtkPOpenFOAMReader">
+<SourceProxy name="OpenFOAMReader" class="vtkPOpenFOAMReader">
   <StringVectorProperty
     name="FileName"
     command="SetFileName"
@@ -24,12 +24,12 @@
     name="CaseType" 
     command="SetCaseType"
     number_of_elements="1"
-    default_values="0"
+    default_values="1"
     animateable="0">
-    <!-- <EnumerationDomain name="enum">
+    <EnumerationDomain name="enum">
       <Entry value="0" text="Decomposed Case"/>
       <Entry value="1" text="Reconstructed Case"/>
-    </EnumerationDomain> -->
+    </EnumerationDomain>
     <Documentation>
       The property indicates whether decomposed mesh or reconstructed mesh should be read
     </Documentation>
@@ -221,7 +221,6 @@
   <Hints>
     <Property name="FileName" show="1"/>
     <Property name="Refresh" show="0"/>
-    <Property name="CaseType" show="0"/>
   </Hints>
 
 </SourceProxy>

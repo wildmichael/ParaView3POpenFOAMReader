@@ -39,7 +39,7 @@ if [ ! -x "$paraviewPath" -o -d "$paraviewPath" ]; then
     exit 1
 fi
 
-ext=pfoam
+ext=foam
 
 Script=${0##*/}
 rootDir=${1:-.}                # treat missing root as "."

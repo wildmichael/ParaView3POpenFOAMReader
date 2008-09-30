@@ -52,79 +52,22 @@ do
    fi
 done
 
-tmpFile=${TMPDIR:-/tmp}/vtkOpenFOAM.$$
-# Clean up on termination and on Ctrl-C
-trap 'rm -f $tmpFile 2>/dev/null; exit 0' EXIT TERM INT
-
-readers=Servers/ServerManager/Resources/readers.xml
-
-# replace the FOAM reader section of
-#    Servers/ServerManager/Resources/readers.xml
-# with our content.
-perl -x $0 $srcdir/vtkOpenFOAMReader.xml $pvdir/$readers > $tmpFile
-rc=$?
-
-if [ "$rc" -eq 0 -a -f $tmpFile ]
+echo
+echo "preparation done ..."
+if [ "x$pvdir" == "x$ParaView_INST_DIR" ]
 then
-   if cmp $tmpFile $pvdir/$readers > /dev/null 2>&1
-   then
-      echo "already up-to-date:  $readers"
-      rc=0
-   else
-      unset noRebuild
-      echo "updating:  $readers"
-      cp -f $pvdir/$readers $pvdir/$readers-bak
-      cp -f $tmpFile $pvdir/$readers
-      rc=$?
-   fi
-
-   echo
-   echo "preparation done ..."
-   if [ "x$pvdir" == "x$ParaView_INST_DIR" ]
-   then
-      echo "If you have already built ParaView, you can accelerate the rebuild:"
-      echo "    buildParaView3.3-cvs -fast"
-      echo "otherwise build ParaView:"
-      echo "    buildParaView3.3-cvs"
-   else
-      echo "   No ParaView_INST_DIR set, build ParaView3 as usual."
-   fi
-   if [ -n "$noRebuild" ]
-   then
-      echo
-      echo "NOTE: all files were already up-to-date"
-      echo
-   fi
+    echo "If you have already built ParaView, you can accelerate the rebuild:"
+    echo "    buildParaView3.3-cvs -fast"
+    echo "otherwise build ParaView:"
+    echo "    buildParaView3.3-cvs"
 else
-   echo "$Script: problem altering readers.xml"
+    echo "   No ParaView_INST_DIR set, build ParaView3 as usual."
+fi
+if [ -n "$noRebuild" ]
+then
+    echo
+    echo "NOTE: all files were already up-to-date"
+    echo
 fi
 
-exit $rc
 # end-of-shell
-
-# ----------------------------------------------------------------------
-# perl script for adjusting readers.xml
-# we could also use sed or awk for the same thing
-#
-#!/usr/bin/perl -w
-use strict;
-my $name = qr{(?:Open)?(?i:FOAM)\s+Reader};
-
-@ARGV == 2 or die "needs two arguments\n";
-
-my ($newXML) = shift;
-while (<>) {
-    if ( /<!--\s*Beginning\s+of\s+$name\s*-->/ ...
-        /<!--\s*End\s+of\s+$name\s*-->/ )
-    {
-        if (/<!--\s*End\s+of\s+$name\s*-->/) {
-            open XML, $newXML or die "cannot read file: $newXML\n";
-            print while <XML>;
-        }
-    }
-    else {
-        print;    ## pass thru
-    }
-}
-
-# ---------------------------------------------------------------- end-of-file

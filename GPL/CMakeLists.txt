@@ -34,34 +34,14 @@ IF(VTK_USE_PARALLEL)
     SERVER_MANAGER_XML POpenFOAMReaderSM.xml
     SERVER_MANAGER_SOURCES vtkPOpenFOAMReader.cxx)
 
-  # Client side
+  # Client side - no longer necessary!
 
-  ADD_PARAVIEW_PLUGIN(
-    POpenFOAMReaderGUIPlugin "1.0" 
-    GUI_RESOURCE_FILES POpenFOAMReaderGUI.xml
-    )
-
-  # Additional UI elements for the OpenFOAMReader panel
-
-  QT4_WRAP_CPP(
-    MOC_SRCS pqOpenFOAMPanel.h
-  )
-
-  ADD_PARAVIEW_OBJECT_PANEL(
-    IFACES IFACE_SRCS
-    CLASS_NAME pqOpenFOAMPanel
-    XML_NAME OpenFOAMReader
-    XML_GROUP sources
-    )
-
-  ADD_PARAVIEW_PLUGIN(
-    OpenFOAMPanel "1.0" 
-    GUI_INTERFACES ${IFACES}
-    SOURCES pqOpenFOAMPanel.cxx ${MOC_SRCS} ${RCS_SRCS} ${IFACE_SRCS}
-    )
+  # ADD_PARAVIEW_PLUGIN(
+  #   POpenFOAMReaderGUIPlugin "1.0" 
+  #   GUI_RESOURCE_FILES POpenFOAMReaderGUI.xml
+  #   )
 
   # Additional UI elements for the POpenFOAMReader panel
-  # Class pqPOpenFOAMPanel inherits pqOpenFOAMPanel
 
   # SET(MOC_SRCS "")
   QT4_WRAP_CPP(
@@ -71,16 +51,14 @@ IF(VTK_USE_PARALLEL)
   ADD_PARAVIEW_OBJECT_PANEL(
     IFACES IFACE_SRCS
     CLASS_NAME pqPOpenFOAMPanel
-    XML_NAME POpenFOAMReader
+    XML_NAME OpenFOAMReader
     XML_GROUP sources
     )
 
-  # To avoid accidental dynamic linking error at runtime, pqOpenFOAMPanel and
-  # pqPOpenFOAMPanel are packed together
   ADD_PARAVIEW_PLUGIN(
     POpenFOAMPanel "1.0" 
     GUI_INTERFACES ${IFACES}
-    SOURCES pqOpenFOAMPanel.cxx pqPOpenFOAMPanel.cxx
+    SOURCES pqPOpenFOAMPanel.cxx
       ${MOC_SRCS} ${RCS_SRCS} ${IFACE_SRCS}
     )
 

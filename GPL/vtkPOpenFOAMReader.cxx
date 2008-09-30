@@ -63,7 +63,7 @@ vtkPOpenFOAMReader::vtkPOpenFOAMReader()
     this->NumProcesses = this->Controller->GetNumberOfProcesses();
     this->ProcessId = this->Controller->GetLocalProcessId();
     }
-  this->CaseType = DECOMPOSED_CASE;
+  this->CaseType = RECONSTRUCTED_CASE;
   this->MTimeOld = 0;
   this->MaximumNumberOfPieces = 1;
 }
