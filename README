@@ -1,4 +1,4 @@
-OpenFOAM native reader for ParaView 3.3/3.5-CVS
+OpenFOAM native reader for ParaView 3.3/3.4/3.5
 
 Description
 ===========
@@ -20,12 +20,14 @@ Installation
 For now the installation configuration of the readers is a bit
 irregular: the installation of serial reader will be done by
 overwriting the existing reader in the ParaView source tree, while the
-parallelized reader and the additional reader UIs will be built as plugins.
+parallelized reader and the additional reader UI will be built as plugins.
 
 First install the serial reader as noted by BSD/ReleaseNotes, then
 proceed to install the parallel reader following
-GPL/ReleaseNotes. Note that in order to install the parallelized
-reader, the serial reader must have been installed.
+GPL/ReleaseNotes.
+
+[!!IMPORTANT!!] You must install both of the serial and parallel
+reader even if you only need the serial reader.
 
 Notes
 =====
@@ -33,14 +35,15 @@ Notes
 1. The reason why the readers are covered by different licenses comes
    from the fact I am using the opensource version of Qt, which
    enforces assignment of GPL for its adoption. In fact the only
-   materials that must be coverd by GPL are the additional UIs. The
-   parallel reader may be covered by the BSD license but I did this
-   way for clarity and simplicity. I will be glad to hear a good
+   materials that must be coverd by GPL are the additional UI. The
+   parallel reader may be covered by the BSD license if I divide the
+   building process of the parallel reader and the UI but I did this
+   way for simplicity of installation. I will be glad to hear a good
    solution.
 
 ToDo
 ====
 
-* Simplification of installation steps.
+1. Simplification of installation steps.
 
-/Takuya Oshima (oshima@eng.niigata-u.ac.jp), Sep. 27, 2008
+/Takuya Oshima (oshima@eng.niigata-u.ac.jp), Oct. 04, 2008

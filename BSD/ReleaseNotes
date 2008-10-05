@@ -1,4 +1,4 @@
-OpenFOAM native reader for ParaView 3.3/3.5-CVS version 20080927
+OpenFOAM native reader for ParaView 3.3/3.4/3.5 version 20081004
 
 This reader is a modified version of the native reader included in
 ParaView 3.3 which is an original work of Terry Jordan.
@@ -15,7 +15,6 @@ Manifest
   pythonExample.py (a scripting example)
   vtkOpenFOAMReader.cxx (the reader code)
   vtkOpenFOAMReader.h (the reader code)
-  vtkOpenFOAMReader.xml (server side XML)
 
 Changes from the previous (20080728) version
 ============================================
@@ -80,7 +79,7 @@ Installation
       <packageDirectory>/BSD/preInstall.sh
 
 4. Build ParaView3.
-  For general ParaView 3.3/3.5-CVS: Build ParaView3 as usual. You would
+  For general ParaView 3.3/3.4/3.5: Build ParaView3 as usual. You would
     want to turn on compiler optimization (set CMAKE_BUILD_TYPE to
     Release). Without it the reader is dead slow. For a rough
     performance indication, the reader loads an ascii-gzipped mesh
@@ -95,6 +94,11 @@ Installation
     If you have not,
 
       buildParaView3.3-cvs               # wait for a while until it finishes
+
+5. [!!IMPORTANT!!] Read GPL/ReleaseNotes to proceed to install the
+parallel part of the reader. You must install both of the serial and
+parallel reader even if you only need the serial reader, since both
+are tightly integrated to each other.
 
 Notes
 =====
@@ -173,13 +177,13 @@ Notes
 ToDo
 ====
 
-1. Code cleanup
+1. Code cleanup.
 
-2. Better B. C. handlings (at least the fixedGradient types should be supported)
+2. Better B. C. handlings (at least fixedGradient types should be supported).
 
-3. Implementation of a true and fast cell-to-point interpolator
+3. Implementation of a true and fast cell-to-point interpolator.
 
-4. Porting the reader to LLNL VisIt (this is my ultimate goal indeed :) )
+4. Porting the reader to LLNL VisIt (this is my ultimate goal indeed :) ).
 
 Acknowledgements
 ================
@@ -197,4 +201,4 @@ Special thanks to
 
 * Masashi Imano, for testing the code.
 
-/Takuya Oshima (oshima@eng.niigata-u.ac.jp), Sep. 27, 2008
+/Takuya Oshima (oshima@eng.niigata-u.ac.jp), Oct. 04, 2008

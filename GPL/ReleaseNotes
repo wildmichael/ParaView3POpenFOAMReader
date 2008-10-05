@@ -1,4 +1,5 @@
-Parallel OpenFOAM native reader plugin for ParaView 3.3/3.5-CVS version 20080927
+Parallel OpenFOAM native reader plugin for ParaView 3.3/3.4/3.5
+version 20081004
 
 Description
 ===========
@@ -12,12 +13,9 @@ Manifest
 ========
 
   CMakeLists.txt (CMake script)
-  COPYING (license)
-  POpenFOAMReaderGUI.xml (client side XML)
+  LICENSE.GPL2 (license)
   POpenFOAMReaderSM.xml (server side XML)
   ReleaseNotes (this file)
-  pqOpenFOAMPanel.cxx (custom UI elements for the serial reader)
-  pqOpenFOAMPanel.h (custom UI elements for the serial reader)
   pqPOpenFOAMPanel.cxx (custom UI elements for the parallel reader)
   pqPOpenFOAMPanel.h (custom UI elements for the parallel reader)
   pvFoam (paraFoam-like script for user convenience)
@@ -34,8 +32,10 @@ of The ParaView Guide. In brief, it goes as follows.
 0. [!!IMPORTANT!!]
    0-1. Installation of vtkOpenFOAMReader (the serial version of the
    reader) is required before installation of the parallel reader.
-   0-2. Obviously, you need to build ParaView with parallelization
-   support (PARAVIEW_USE_MPI=ON).
+   0-2. In order for parallelization to work you need to build
+   ParaView with parallelization support
+   (PARAVIEW_USE_MPI=ON). However if you just like to read decomposed
+   cases in serial the parallelization support is not mandatory.
 
 1. Create a build directory.
 
@@ -47,7 +47,7 @@ of The ParaView Guide. In brief, it goes as follows.
      ccmake <packageDirectory>/GPL -DParaView_DIR=<path to your paraview build>
 
 3. Configure the build. Note that CMAKE_BUILD_TYPE must be same as the
-   one for the ParaView build (otherwise the plugin will not load).
+   one used for the ParaView build (otherwise the plugin will not load).
 
 4. Run make.
 
@@ -55,10 +55,8 @@ of The ParaView Guide. In brief, it goes as follows.
 
 5. Copy the following produced libraries to your plugin directory.
 
-     libOpenFOAMPanel.*
-     libPOpenFOAMPanel.*
-     libPOpenFOAMReaderGUIPlugin.*
-     libPOpenFOAMReaderSMPlugin.*
+     [lib]POpenFOAMPanel.*
+     [lib]POpenFOAMReaderSMPlugin.*
 
    where * is the extension given to shared libraries on your platform
    (so, dylib or dll).
@@ -70,7 +68,12 @@ Notes
    remote plugin before loading a parallel case when ParaView is run
    in client/server mode. Otherwise ParaView will crash.
 
-2. The stub file extension assigned to the reader is ".pfoam".
+2. The Case Type selection combo box determines whether a
+   reconstructed case or a decomposed case will be loaded. The
+   parallelization works only for decomposed cases in client/server
+   mode. If you try to load a reconstructed case in server/client
+   mode, it will be loaded into pvserver process 0 (then you can apply
+   Merge Blocks -> D3 to distribute the data).
 
 3. The number of decomposed mesh regions and the number of pvserver
    processes do not have to be identical, with a known exception of
@@ -89,8 +92,9 @@ Notes
    assigned for each decomposed mesh region (since the tracer handles
    inter-server process boundaries -- but not processor boundaries --
    properly). For example if your case was decomposed into four
-   processor regions, you should run four pvserver processes. when in
-   serial you can use Clean to Grid as noted in 5. Otherwise the
+   processor regions, you should run four pvserver processes. On the
+   other hand when in serial you can use Clean to Grid as noted in
+   5. If your setup does not apply to either of the two the
    streamlines will stop at appended processor boundaries.
 
 7. Processor subdirectories are detected by the server process 0 and
@@ -98,7 +102,8 @@ Notes
    if you have processor0 - processor4 subdirectories while having 3
    pvservers running, process 0 owns processor0 and processor3
    subdirectories, process 1 owns processor1 and processor4, and
-   process 2 owns processor2.
+   process 2 owns processor2. The reader does not support distributed
+   cases yet.
 
 8. The timesteps are taken from the first processor subdirectory
    (typically processor0) by the server process 0 and broadcasted to
@@ -107,14 +112,11 @@ Notes
 9. The reader does not output processor boundary patches. To do so you
    have to read each processor subdirectory as a separate case.
 
-10. The reader can also read reconstructed cases by internally
-   forwarding data requests to the serial reader. For reading
-   reconstructed cases, set the combo box at top-left of the reader
-   panel to "Reconstructed case."
-
 ToDo
 ====
 
-1. Adding ghost cells to each dataset piece -- How?
+1. Distributed case support.
 
-/Takuya Oshima (oshima@eng.niigata-u.ac.jp), Sep. 27, 2008
+2. Adding ghost cells to each dataset piece -- How?
+
+/Takuya Oshima (oshima@eng.niigata-u.ac.jp), Oct. 04, 2008
