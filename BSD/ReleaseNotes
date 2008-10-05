@@ -1,4 +1,4 @@
-OpenFOAM native reader for ParaView 3.3/3.4/3.5 version 20081004
+OpenFOAM native reader for ParaView 3.3/3.4/3.5 version 20081005
 
 This reader is a modified version of the native reader included in
 ParaView 3.3 which is an original work of Terry Jordan.
@@ -201,4 +201,4 @@ Special thanks to
 
 * Masashi Imano, for testing the code.
 
-/Takuya Oshima (oshima@eng.niigata-u.ac.jp), Oct. 04, 2008
+/Takuya Oshima (oshima@eng.niigata-u.ac.jp), Oct. 05, 2008

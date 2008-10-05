@@ -1,5 +1,5 @@
 Parallel OpenFOAM native reader plugin for ParaView 3.3/3.4/3.5
-version 20081004
+version 20081005
 
 Description
 ===========
@@ -119,4 +119,4 @@ ToDo
 
 2. Adding ghost cells to each dataset piece -- How?
 
-/Takuya Oshima (oshima@eng.niigata-u.ac.jp), Oct. 04, 2008
+/Takuya Oshima (oshima@eng.niigata-u.ac.jp), Oct. 05, 2008
