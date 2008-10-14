@@ -6214,7 +6214,7 @@ vtkFloatArray *vtkOpenFOAMReaderPrivate::FillField(vtkFoamEntry *entryPtr,
       else
         {
         vtkErrorMacro(<< "Number of components and field class doesn't match "
-          << "for " << ioPtr->GetObjectName() << ". class = " << className
+          << "for " << ioPtr->GetFileName() << ". class = " << className
           << ", nComponents = " << nComponents);
         return NULL;
         }
@@ -6280,7 +6280,7 @@ vtkFloatArray *vtkOpenFOAMReaderPrivate::FillField(vtkFoamEntry *entryPtr,
       }
     else
       {
-      vtkErrorMacro(<< ioPtr->GetObjectName().c_str() << " is not a valid "
+      vtkErrorMacro(<< ioPtr->GetFileName().c_str() << " is not a valid "
         << ioPtr->GetClassName().c_str());
       return NULL;
       }
@@ -6388,7 +6388,7 @@ void vtkOpenFOAMReaderPrivate::GetVolFieldAtTimeStep(
 
   if(io.GetClassName().substr(0, 3) != "vol")
     {
-    vtkErrorMacro(<< io.GetObjectName().c_str() << " is not a volField");
+    vtkErrorMacro(<< io.GetFileName().c_str() << " is not a volField");
     return;
     }
 
@@ -6404,7 +6404,7 @@ void vtkOpenFOAMReaderPrivate::GetVolFieldAtTimeStep(
     // if there's no cell there shouldn't be any boundary faces either
     if(this->NumCells > 0)
       {
-      vtkErrorMacro(<<"internalField of " << io.GetObjectName().c_str()
+      vtkErrorMacro(<<"internalField of " << io.GetFileName().c_str()
         << " is empty");
       }
     return;
@@ -6742,7 +6742,7 @@ void vtkOpenFOAMReaderPrivate::GetPointFieldAtTimeStep(
 
   if(io.GetClassName().substr(0, 5) != "point")
     {
-    vtkErrorMacro(<< io.GetObjectName().c_str() << " is not a pointField");
+    vtkErrorMacro(<< io.GetFileName().c_str() << " is not a pointField");
     return;
     }
 
@@ -6758,7 +6758,7 @@ void vtkOpenFOAMReaderPrivate::GetPointFieldAtTimeStep(
     // if there's no cell there shouldn't be any boundary faces either
     if(this->NumPoints > 0)
       {
-      vtkErrorMacro(<<"internalField of " << io.GetObjectName().c_str()
+      vtkErrorMacro(<<"internalField of " << io.GetFileName().c_str()
         << " is empty");
       }
     return;
