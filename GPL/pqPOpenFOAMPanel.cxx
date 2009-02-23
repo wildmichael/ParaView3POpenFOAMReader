@@ -17,9 +17,8 @@
     <http://www.gnu.org/licenses/>.
 
 =========================================================================*/
-// Copyright (c) 2008 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
+// Copyright (c) 2008-2009 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
 // All rights reserved.
-// Date: 2008-09-30
 
 #include "pqPOpenFOAMPanel.h"
 
@@ -29,7 +28,9 @@
 
 // server manager
 #include "vtkSMProperty.h"
+#include "vtkSMProxyIterator.h"
 #include "vtkSMSourceProxy.h"
+#include "vtkSMViewProxy.h"
 
 //-----------------------------------------------------------------------------
 pqPOpenFOAMPanel::pqPOpenFOAMPanel(pqProxy *pxy, QWidget *p)
@@ -38,6 +39,7 @@ pqPOpenFOAMPanel::pqPOpenFOAMPanel(pqProxy *pxy, QWidget *p)
   // create refresh button
   QPushButton *refresh = new QPushButton("Refresh", this);
   refresh->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
   // place the button at top-right of the layout grid
   this->PanelLayout->addWidget(refresh, 0, 1, Qt::AlignRight);
   QObject::connect(refresh, SIGNAL(clicked()), this, SLOT(onRefresh()));
@@ -48,8 +50,18 @@ pqPOpenFOAMPanel::pqPOpenFOAMPanel(pqProxy *pxy, QWidget *p)
 //-----------------------------------------------------------------------------
 void pqPOpenFOAMPanel::onRefresh()
 {
-  vtkSMSourceProxy* sp = vtkSMSourceProxy::SafeDownCast(this->proxy());
-  sp->GetProperty("Refresh")->Modified();
+  vtkSMSourceProxy *sp = vtkSMSourceProxy::SafeDownCast(this->proxy());
+
   // force updating everything (RequestInformation() + RequestData())
+  sp->GetProperty("Refresh")->Modified();
   sp->UpdatePipeline();
+
+  // still render all views (not only 3D views but also e.g. xy plots)
+  vtkSMProxyIterator *pIt = vtkSMProxyIterator::New();
+  pIt->SetModeToOneGroup();
+  for(pIt->Begin("views"); !pIt->IsAtEnd(); pIt->Next())
+    {
+    vtkSMViewProxy::SafeDownCast(pIt->GetProxy())->StillRender();
+    }
+  pIt->Delete();
 }
