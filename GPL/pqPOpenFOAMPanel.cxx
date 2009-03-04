@@ -79,6 +79,7 @@ pqPOpenFOAMPanel::pqPOpenFOAMPanel(pqProxy *pxy, QWidget *p)
   this->Rescale = new QToolButton(this);
   this->Rescale->setText("Rescale");
   this->Rescale->setCheckable(true);
+  this->Rescale->setChecked(true);
   grid->addWidget(this->Rescale, 0, 2, Qt::AlignLeft);
 
   // create watch button
@@ -171,7 +172,6 @@ void pqPOpenFOAMPanel::onTimeout()
       {
       pipe->resetLookupTableScalarRange();
       }
+    app->render();
     }
-
-  // we don't need app->render()
 }
