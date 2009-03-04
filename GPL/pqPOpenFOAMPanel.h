@@ -45,7 +45,6 @@ protected slots:
   void onEditingFinished();
 
 private:
-  int Interval;
   QLineEdit *IntEdit;
   QTimer *Timer;
   QToolButton *Rescale;

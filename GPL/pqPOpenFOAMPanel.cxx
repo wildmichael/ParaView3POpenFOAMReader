@@ -104,7 +104,7 @@ void pqPOpenFOAMPanel::onToggled(const bool checked)
 {
   if(checked)
     {
-    this->Timer->start(this->Interval);
+    this->Timer->start();
     }
   else
     {
@@ -116,8 +116,7 @@ void pqPOpenFOAMPanel::onToggled(const bool checked)
 void pqPOpenFOAMPanel::onEditingFinished()
 {
   // onEditingFinished is called only when the entered text is acceptable
-  this->Interval = 1000 * this->IntEdit->text().toInt(); // convert to msec
-  this->Timer->setInterval(this->Interval);
+  this->Timer->setInterval(1000 * this->IntEdit->text().toInt()); // convert to msec
 }
 
 //-----------------------------------------------------------------------------
