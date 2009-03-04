@@ -146,7 +146,11 @@ void pqPOpenFOAMPanel::onTimeout()
   // get the last timestep
   vtkSMDoubleVectorProperty *tsv
       = vtkSMDoubleVectorProperty::SafeDownCast(sp->GetProperty("TimestepValues"));
-  double lastStep = tsv->GetElement(tsv->GetNumberOfElements() - 1);
+  double lastStep = 0.0;
+  if(tsv->GetNumberOfElements() > 0)
+    {
+    lastStep = tsv->GetElement(tsv->GetNumberOfElements() - 1);
+    }
 
   pqApplicationCore *app = pqApplicationCore::instance();
 
@@ -169,6 +173,5 @@ void pqPOpenFOAMPanel::onTimeout()
       }
     }
 
-  // render all views (not only 3D views but also e.g. xy plots)
-  app->render();
+  // we don't need app->render()
 }
