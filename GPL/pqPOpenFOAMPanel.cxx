@@ -71,6 +71,7 @@ pqPOpenFOAMPanel::pqPOpenFOAMPanel(pqProxy *pxy, QWidget *p)
   QIntValidator *valid = new QIntValidator(this->IntEdit);
   valid->setBottom(1);
   this->IntEdit->setValidator(valid);
+  this->IntEdit->setToolTip("The interval for watching a case.");
   QObject::connect(this->IntEdit, SIGNAL(editingFinished()), this,
       SLOT(onEditingFinished()));
   grid->addWidget(this->IntEdit, 0, 1, Qt::AlignLeft);
@@ -80,18 +81,23 @@ pqPOpenFOAMPanel::pqPOpenFOAMPanel(pqProxy *pxy, QWidget *p)
   this->Rescale->setText("Rescale");
   this->Rescale->setCheckable(true);
   this->Rescale->setChecked(true);
+  this->Rescale->setToolTip("When watching a case, whether autoscaling of scalar data is"
+      " applied every time the scene is updated.");
   grid->addWidget(this->Rescale, 0, 2, Qt::AlignLeft);
 
   // create watch button
   QToolButton *watch = new QToolButton(this);
-  watch->setCheckable(true);
   watch->setText("Watch");
+  watch->setCheckable(true);
+  watch->setToolTip("Watch the case with the specified interval and update the scene with"
+      " the latest timestep.");
   QObject::connect(watch, SIGNAL(toggled(bool)), this, SLOT(onToggled(bool)));
   grid->addWidget(watch, 0, 3, Qt::AlignLeft);
 
   // create refresh button and place the button at top-right of the layout grid
   QPushButton *refresh = new QPushButton("Refresh", this);
   refresh->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  refresh->setToolTip("Rescan timesteps and reload mesh and field data.");
   QObject::connect(refresh, SIGNAL(clicked()), this, SLOT(onRefresh()));
   grid->addWidget(refresh, 0, 5, Qt::AlignRight);
 
