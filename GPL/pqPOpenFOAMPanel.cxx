@@ -152,31 +152,29 @@ void pqPOpenFOAMPanel::onTimeout()
   // get the last timestep
   vtkSMDoubleVectorProperty *tsv
       = vtkSMDoubleVectorProperty::SafeDownCast(sp->GetProperty("TimestepValues"));
-  double lastStep = 0.0;
   if(tsv->GetNumberOfElements() > 0)
     {
-    lastStep = tsv->GetElement(tsv->GetNumberOfElements() - 1);
-    }
+    const double lastStep = tsv->GetElement(tsv->GetNumberOfElements() - 1);
+    pqApplicationCore *app = pqApplicationCore::instance();
 
-  pqApplicationCore *app = pqApplicationCore::instance();
-
-  // set animation time to the last timestep
-  QList<pqAnimationScene*> scenes
-      = app->getServerManagerModel()->findItems<pqAnimationScene *>();
-  foreach (pqAnimationScene *scene, scenes)
-    {
-    scene->setAnimationTime(lastStep);
-    }
-
-  if(this->Rescale->isChecked())
-    {
-    // rescale
-    QList<pqPipelineRepresentation*> pipes
-        = app->getServerManagerModel()->findItems<pqPipelineRepresentation *>();
-    foreach (pqPipelineRepresentation *pipe, pipes)
+    // set animation time to the last timestep
+    QList<pqAnimationScene*> scenes
+        = app->getServerManagerModel()->findItems<pqAnimationScene *>();
+    foreach (pqAnimationScene *scene, scenes)
       {
-      pipe->resetLookupTableScalarRange();
+      scene->setAnimationTime(lastStep);
       }
-    app->render();
+
+    if(this->Rescale->isChecked())
+      {
+      // rescale
+      QList<pqPipelineRepresentation*> pipes
+          = app->getServerManagerModel()->findItems<pqPipelineRepresentation *>();
+      foreach (pqPipelineRepresentation *pipe, pipes)
+        {
+        pipe->resetLookupTableScalarRange();
+        }
+      app->render();
+      }
     }
 }
