@@ -19,7 +19,6 @@
 =========================================================================*/
 // Copyright (c) 2008 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
 // All rights reserved.
-// Date: 2008-09-27
 
 // This class was developed by Takuya Oshima at Niigata University,
 // Japan (oshima@eng.niigata-u.ac.jp).

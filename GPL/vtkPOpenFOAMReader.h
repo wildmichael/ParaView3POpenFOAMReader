@@ -19,7 +19,6 @@
 =========================================================================*/
 // Copyright (c) 2008 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
 // All rights reserved.
-// Date: 2008-09-27
 
 // .NAME vtkPOpenFOAMReader - reads a decomposed dataset in OpenFOAM format
 // .SECTION Description
