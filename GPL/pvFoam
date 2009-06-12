@@ -88,7 +88,8 @@ if [ -e "${fileName}" ]; then
 	exit 1
     fi
 else
-    trap "rm -f \"${fileName}\" > /dev/null 2>&1; exit 0" EXIT TERM INT QUIT
+    trap "rm -f \"${fileName}\" > /dev/null 2>&1; exit 0" \
+	EXIT HUP INT PIPE ALRM TERM USR1 USR2
     if ! touch "${fileName}" > /dev/null 2>&1; then
 	echo "Cannot create stub ${fileName}; exiting"
 	exit 1
