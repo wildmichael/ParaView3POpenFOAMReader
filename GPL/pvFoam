@@ -27,11 +27,12 @@
 
 # Adjust as necessary.
 # You might also want to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH.
-#paraviewPath=/opt/ParaView3/bin/paraview.app/Contents/MacOS/paraview
-paraviewPath="`which paraview`"; pvPathLineNo=${LINENO}
+paraviewPath="`which paraview`"
+# or in full path like paraviewPath=/opt/ParaView3/bin/paraview
 
 if [ ! -x "${paraviewPath}" -o -d "${paraviewPath}" ]; then
-    echo "ParaView not found; set paraviewPath at line ${pvPathLineNo} of $0."
+    # not using LINENO which is a bash-ism
+    echo "ParaView not found; set paraviewPath at line" `awk '/paraviewPath/{print FNR;exit 0}' $0` "of $0."
     exit 1
 fi
 
