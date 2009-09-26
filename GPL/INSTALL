@@ -1,0 +1,28 @@
+The directory contains additional UIs used for refreshing loaded cases
+and watching running cases. Note  that the materials in this directory
+have to be covered by the GPL since I used an opensource edition of Qt
+4.3 for the development.
+
+
+Install as a plugin
+===================
+
+The plugin can be compiled and installed in a usual manner as a
+ParaView plugin. Refer to The ParaView Guide.
+
+
+Install by patching the ParaView sources
+========================================
+
+Currently ParaView 3.6.1 is supported.
+
+1. Copy pqPOPenFOAMPanel.{cxx,h} to ParaView3/Qt/Components
+2. Apply 3.6.1/CMakeLists.txt.diff to ParaView3/Qt/Components/CMakeLists.txt
+3. Apply 3.6.1/pqObjectInspectorWidget.cxx.diff to
+   ParaView3/Qt/Components/pqObjectInspectorWidget.cxx
+
+
+Install by extending ParaView at compile time
+=============================================
+
+Currently not supported.

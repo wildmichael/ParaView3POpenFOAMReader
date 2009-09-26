@@ -1,0 +1,25 @@
+Index: CMakeLists.txt
+===================================================================
+RCS file: /cvsroot/ParaView3/ParaView3/VTK/Hybrid/CMakeLists.txt,v
+retrieving revision 1.148
+diff -u -r1.148 CMakeLists.txt
+--- CMakeLists.txt	3 Aug 2008 15:09:40 -0000	1.148
++++ CMakeLists.txt	28 Sep 2008 05:51:28 -0000
+@@ -91,10 +91,16 @@
+       vtkPExodusIIReader.cxx
+       vtkPExodusReader.cxx
+       )
+-    SET(KIT_LIBS ${KIT_LIBS} vtkParallel)
+   ENDIF(VTK_USE_PARALLEL)
+ ENDIF(VTK_HAS_EXODUS)
+ 
++IF(VTK_USE_PARALLEL)
++  SET(Kit_SRCS ${Kit_SRCS}
++    vtkPOpenFOAMReader.cxx
++    )
++  SET(KIT_LIBS ${KIT_LIBS} vtkParallel)
++ENDIF(VTK_USE_PARALLEL)
++
+ IF (WIN32)
+   IF (VTK_VFW_SUPPORTS_CAPTURE)
+     SET (Kit_SRCS ${Kit_SRCS} vtkWin32VideoSource.cxx)

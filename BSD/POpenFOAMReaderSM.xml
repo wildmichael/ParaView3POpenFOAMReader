@@ -180,6 +180,19 @@
   </IntVectorProperty>
 
   <IntVectorProperty
+    name="IsSinglePrecisionBinary"
+    command="SetIsSinglePrecisionBinary"
+    number_of_elements="1"
+    default_values="0"
+    label="Binary files are in single precision"
+    animateable="0">
+    <BooleanDomain name="bool"/>
+    <Documentation>
+      Set if binary files are in single precision.
+    </Documentation>
+  </IntVectorProperty>
+
+  <IntVectorProperty
     name="ListTimeStepsByControlDict"
     command="SetListTimeStepsByControlDict"
     number_of_elements="1"
@@ -218,9 +231,48 @@
     </Documentation>
   </IntVectorProperty>
 
+  <IntVectorProperty
+    name="UiInterval"
+    command="SetUiInterval"
+    number_of_elements="1"
+    default_values="60"
+    animateable="0">
+    <IntRangeDomain name="range" min="1"/>
+    <Documentation>
+      Interval of polling case directory for refresh.
+    </Documentation>
+  </IntVectorProperty>
+
+  <IntVectorProperty
+    name="UiRescale"
+    command="SetUiRescale"
+    number_of_elements="1"
+    default_values="1"
+    animateable="0">
+    <BooleanDomain name="bool"/>
+    <Documentation>
+      Rescale the range of color lookup table automatically on refresh.
+    </Documentation>
+  </IntVectorProperty>
+
+  <IntVectorProperty
+    name="UiWatch"
+    command="SetUiWatch"
+    number_of_elements="1"
+    default_values="0"
+    animateable="0">
+    <BooleanDomain name="bool"/>
+    <Documentation>
+      Poll the case directory at the interval specified by UiInterval.
+    </Documentation>
+  </IntVectorProperty>
+
   <Hints>
     <Property name="FileName" show="1"/>
     <Property name="Refresh" show="0"/>
+    <Property name="UiInterval" show="0"/>
+    <Property name="UiRescale" show="0"/>
+    <Property name="UiWatch" show="0"/>
   </Hints>
 
 </SourceProxy>

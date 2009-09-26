@@ -1,0 +1,43 @@
+Currently  three ways  are supported  for installing  the  reader into
+ParaView:  install  as a  plugin,  install  by  patching the  ParaView
+sources, and install by extending  ParaView at compile time. In either
+case, please  do not  forget to set  CMAKE_BUILD_TYPE to  Release when
+configuring  with CMake  in order  for compiler  optimization  to work
+unless you have a specific intention for choosing other options.
+
+
+Install as a plugin
+===================
+
+The plugin can be compiled and installed in a usual manner as a
+ParaView plugin. Refer to The ParaView Guide.
+
+
+Install by patching the ParaView sources
+========================================
+
+Currently ParaView 3.6.1 is supported.
+
+1. Copy vtkNewOpenFOAMReader.{cxx,h} to ParaView3/VTK/IO
+2. Apply 3.6.1/CMakeLists_IO.txt.diff to ParaView3/VTK/IO/CMakeLists.txt
+3. Copy vtkPOpenFOAMReader.{cxx,h} to ParaView3/VTK/Hybrid
+4. Apply 3.6.1/CMakeLists_Hybrid.txt.diff to ParaView3/VTK/Hybrid/CMakeLists.txt
+5. Copy CMake/FindRegex.cmake to ParaView3/VTK/CMake
+6. Replace the section enclosed by
+     <!-- Beginning of FOAM Reader -->
+   and
+     <!-- End of foam Reader -->
+   in ParaView3/Servers/ServerManager/Resources/readers.xml with
+   the section enclosed by
+     <!-- Beginning of Parallel OF Reader -->
+   and
+     <!-- End of Parallel OF Reader -->
+   in the included POpenFOAMReaderSM.xml.
+
+
+Install by extending ParaView at compile time
+=============================================
+
+Refer to the "Build Code As Part Of ParaView" section of
+http://paraview.org/Wiki/Extending_ParaView_at_Compile_Time.
+The module name is POpenFOAMReader.

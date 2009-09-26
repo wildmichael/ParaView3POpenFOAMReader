@@ -1,6 +1,6 @@
 #/*=========================================================================
 #
-#    This file is part of vtkPOpenFOAMReader.
+#    This file is part of pqPOpenFOAMPanel.
 #
 #    vtkPOpenFOAMReader is free software: you can redistribute it
 #    and/or modify it under the terms of the GNU General Public License
@@ -17,53 +17,41 @@
 #    <http://www.gnu.org/licenses/>.
 #
 #=========================================================================*/
-# Copyright (c) 2008 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
+# Copyright (c) 2008-2009 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
 # All rights reserved.
-# Date: 2008-08-31
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS TRUE)
+
 FIND_PACKAGE(ParaView REQUIRED)
 INCLUDE(${PARAVIEW_USE_FILE})
 
-IF(VTK_USE_PARALLEL)
+# Additional UI elements for the POpenFOAMReader panel
 
-  # Server side
+QT4_WRAP_CPP(
+  MOC_SRCS pqPOpenFOAMPanel.h
+  )
 
-  ADD_PARAVIEW_PLUGIN(
-    POpenFOAMReaderSMPlugin "1.0" 
-    SERVER_MANAGER_XML POpenFOAMReaderSM.xml
-    SERVER_MANAGER_SOURCES vtkPOpenFOAMReader.cxx)
+ADD_PARAVIEW_OBJECT_PANEL(
+  IFACES IFACE_SRCS
+  CLASS_NAME pqPOpenFOAMPanel
+  XML_NAME OpenFOAMReader
+  XML_GROUP sources
+  )
 
-  # Client side - no longer necessary!
+ADD_PARAVIEW_PLUGIN(
+  POpenFOAMPanelPlugin "1.0" 
+  GUI_INTERFACES ${IFACES}
+  SOURCES pqPOpenFOAMPanel.cxx
+    ${MOC_SRCS} ${RCS_SRCS} ${IFACE_SRCS}
+  )
 
-  # ADD_PARAVIEW_PLUGIN(
-  #   POpenFOAMReaderGUIPlugin "1.0" 
-  #   GUI_RESOURCE_FILES POpenFOAMReaderGUI.xml
-  #   )
+# Set installation destination
 
-  # Additional UI elements for the POpenFOAMReader panel
-
-  # SET(MOC_SRCS "")
-  QT4_WRAP_CPP(
-    MOC_SRCS pqPOpenFOAMPanel.h
-    )
-
-  ADD_PARAVIEW_OBJECT_PANEL(
-    IFACES IFACE_SRCS
-    CLASS_NAME pqPOpenFOAMPanel
-    XML_NAME OpenFOAMReader
-    XML_GROUP sources
-    )
-
-  ADD_PARAVIEW_PLUGIN(
-    POpenFOAMPanel "1.0" 
-    GUI_INTERFACES ${IFACES}
-    SOURCES pqPOpenFOAMPanel.cxx
-      ${MOC_SRCS} ${RCS_SRCS} ${IFACE_SRCS}
-    )
-
-ELSE(VTK_USE_PARALLEL)
-
-  MESSAGE(FATAL_ERROR "vtkPOpenFOAMReader requires parallelization support.")
-
-ENDIF(VTK_USE_PARALLEL)
+IF(WIN32)
+  INSTALL(TARGETS POpenFOAMPanelPlugin RUNTIME
+    DESTINATION "${CMAKE_INSTALL_PREFIX}")
+ELSE()
+  INSTALL(TARGETS POpenFOAMPanelPlugin LIBRARY
+    DESTINATION "${CMAKE_INSTALL_PREFIX}")
+ENDIF()

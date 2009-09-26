@@ -1,25 +1,17 @@
 /*=========================================================================
 
-    This file is part of vtkPOpenFOAMReader.
+  Program:   Visualization Toolkit
+  Module:    $RCSfile: vtkPOpenFOAMReader.h,v $
 
-    vtkPOpenFOAMReader is free software: you can redistribute it
-    and/or modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+  All rights reserved.
+  See License_v1.2.txt or http://www.kitware.com/Copyright.htm for details.
 
-    vtkPOpenFOAMReader is distributed in the hope that it will be
-    useful, but WITHOUT ANY WARRANTY; without even the implied
-    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-    See the GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with vtkPOpenFOAMReader.  If not, see
-    <http://www.gnu.org/licenses/>.
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+     PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// Copyright (c) 2008 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
-// All rights reserved.
-
 // .NAME vtkPOpenFOAMReader - reads a decomposed dataset in OpenFOAM format
 // .SECTION Description
 // vtkPOpenFOAMReader creates a multiblock dataset. It reads
@@ -35,19 +27,24 @@
 #ifndef __vtkPOpenFOAMReader_h
 #define __vtkPOpenFOAMReader_h
 
-#include "vtkOpenFOAMReader.h"
+#include "vtkNewOpenFOAMReader.h"
 
 class vtkDataArraySelection;
 class vtkMultiProcessController;
 
-class VTK_EXPORT vtkPOpenFOAMReader : public vtkOpenFOAMReader
+class
+#if !defined(POpenFOAMReaderPlugin_EXPORTS)
+VTK_HYBRID_EXPORT
+#endif
+vtkPOpenFOAMReader : public vtkNewOpenFOAMReader
 {
 public:
   //BTX
   enum caseType { DECOMPOSED_CASE = 0, RECONSTRUCTED_CASE = 1 };
   //ETX
   static vtkPOpenFOAMReader *New();
-  vtkTypeRevisionMacro(vtkPOpenFOAMReader, vtkOpenFOAMReader);
+
+  vtkTypeRevisionMacro(vtkPOpenFOAMReader, vtkNewOpenFOAMReader);
 
   void PrintSelf(ostream &os, vtkIndent indent);
 
@@ -59,6 +56,29 @@ public:
   // Set and get the controller.
   virtual void SetController(vtkMultiProcessController *);
   vtkGetObjectMacro(Controller, vtkMultiProcessController);
+
+  // Description:
+  // Set and get the polling interval for watching the case directory.
+  // Not using vtkSetMacro so as not to modify MTime.
+  virtual void SetUiInterval(const int interval)
+    { this->UiInterval = interval; }
+  vtkGetMacro(UiInterval, int);
+
+  // Description:
+  // Set and get if rescale the range of color lookup table
+  // automatically on refresh.
+  // Not using vtkSetMacro so as not to modify MTime.
+  virtual void SetUiRescale(const int rescale) { this->UiRescale = rescale; }
+  vtkGetMacro(UiRescale, int);
+  vtkBooleanMacro(UiRescale, int);
+
+  // Description:
+  // Set and get if rescale the range of color lookup table
+  // automatically on refresh.
+  // Not using vtkSetMacro so as not to modify MTime.
+  virtual void SetUiWatch(const int watch) { this->UiWatch = watch; }
+  vtkGetMacro(UiWatch, int);
+  vtkBooleanMacro(UiWatch, int);
 
 protected:
   vtkPOpenFOAMReader();
@@ -77,13 +97,17 @@ private:
   int NumProcesses;
   int ProcessId;
 
+  // the followings are for additional UI elements
+  int UiInterval;
+  int UiRescale;
+  int UiWatch;
+
   vtkPOpenFOAMReader(const vtkPOpenFOAMReader &); // Not implemented.
   void operator=(const vtkPOpenFOAMReader &); // Not implemented.
 
   void GatherMetaData();
   void BroadcastStatus(int &);
   void Broadcast(vtkStringArray *);
-  //void Gather(vtkDataArraySelection *);
   void AllGather(vtkStringArray *);
   void AllGather(vtkDataArraySelection *);
 };

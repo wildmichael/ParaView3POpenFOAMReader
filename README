@@ -1,49 +1,384 @@
-OpenFOAM native reader for ParaView 3.3/3.4/3.5
+Parallelized Native OpenFOAM(R) Reader for ParaView 3.6/3.7 version 20090920
 
-Description
-===========
+This reader is a modified version of the native reader included in
+ParaView 3.3 which is an original work of Terry Jordan.
 
-This is a package of OpenFOAM native reader for ParaView 3.3/3.4/3.5
-and its parallelized implementation for decomposed OpenFOAM cases of
-parallel simulations.
+OPENFOAM(R) is a registered trade mark of OpenCFD Limited, the
+producer of the OpenFOAM software and owner of the OPENFOAM(R) and
+OpenCFD(R) trade marks. This offering is not approved or endorsed by
+OpenCFD Limited.
 
-Manifest
+1. Manifest and Licenses
+========================
+
+  BSD/ contains the reader provided under the ParaView License 1.2
+  GPL/ contains additional UI controls provided under the GPL
+  CMakeLists.txt (CMake configuration file)
+  README (this file)
+  readerPanel.pdf (quick reference guide)
+
+  See BSD/License_v1.2.txt and GPL/LICENSE.GPL2 for full licensing
+  terms.
+
+  The GPLed materials are required only for "refresh (rescan timesteps
+  and reload mesh and fields with a single click)" and "watch a
+  running case (poll the case directory with a specified interval and
+  render a new timestep if one is found)" capabilities. Other reader
+  functionalities work without the GPLed materials.
+
+  Basically, the difference in licenses (BSD vs GPL) should not matter
+  as long as one intends to link ParaView with one of opensource
+  editions of Qt version 4.4 or earlier, since the opensource editions
+  are licensed under the GPL anyway. However it will matter if one
+  plans to create a proprietary variant of ParaView with a commercial
+  edition of Qt, or Qt 4.5 or later.
+
+2. Installation
+===============
+
+  The reader can be installed as either plugins or a builtin
+  reader. Unlike the previous versions of the reader, if one chooses
+  to install the reader as plugins the main ParaView sources no longer
+  have to be patched. Thus in general installing as plugins is
+  recommended.
+
+  On the other hand, installing as a builtin reader is meant for Linux
+  package maintainers who intend to distribute their own versions of
+  ParaView sources and binaries.
+
+ 2.1 Prerequisites
+ -----------------
+
+  - CMake 2.6 or later is required.
+
+  - The reader has absolutely no dependence on any of the OpenFOAM
+    libraries (which is why the reader is called native). However the
+    reader can be installed somewhat easier as plugins if installed
+    with ParaView 3.6.1 that comes with the ThirdParty package of
+    OpenFOAM 1.6.
+
+  - When configuring the reader with CMake, a system POSIX regex
+    (regular expression) library is searched for and the reader uses
+    the library if found in order to support the new regex'ed
+    dictionary keyword syntax in OpenFOAM 1.6. If one is not found but
+    the reader is built with Visual Studio 2008 SP1 or later, the
+    regex library in STL TR1 extension that comes with Visual Studio
+    2008 SP1 or later is used instead. If none were found, the regex
+    library included in VTK is used as the final fallback option. This
+    is because at least a pattern in the extended regular expression
+    (ERE) is known not supported by the VTK regex library. Hence on
+    Windows, building the reader with Visual Studio 2008 SP1 or later
+    is strongly recommended.
+
+ 2.2 Install as plugins (Linux and OS X)
+ ---------------------------------------
+
+  2.2.1 Building and installing ParaView with parallelization support
+
+  First one has to do a full build, installation and configuration of
+  ParaView with parallelization support. See
+
+    http://paraview.org/Wiki/ParaView:Build_And_Install
+    http://paraview.org/Wiki/Starting_the_server
+
+  for full instructions. When configuring with CMake, at least the
+  following variables should be set:
+
+    BUILD_SHARED_LIBS = ON
+    CMAKE_BUILD_TYPE = Release
+    PARAVIEW_USE_MPI = ON
+
+  . After installation, do not remove the ParaView build directory but
+  keep it since it is required in building the plugins afterwards.
+
+  Alternatively, a parallelized ParaView-3.6.1 can be built using the
+  OpenFOAM ThirdParty-1.6 source package (ThirdParty-1.6.General.gtgz)
+  by issuing the following commands under OpenFOAM environment:
+
+    cd $WM_THIRD_PARTY_DIR
+    rm -rf paraview-3.6.1/platforms
+    ./makeParaView -mpi
+
+  2.2.2 Building and installing the plugins
+
+  The BSDed and GPLed plugins can be installed at once. Create a build
+  directory of the plugins and point CMake to the top directory of the
+  reader source tree (the directory where this README file is in).
+
+    mkdir <the plugin build directory>
+    cd <the plugin build directory>
+    ccmake <the top directory of the reader source tree>
+
+  Then set
+
+    CMAKE_BUILD_TYPE = Release
+    CMAKE_INSTALL_PREFIX = <one of the local plugin directories of
+                           the ParaView installation>
+    CMAKE_OSX_ARCHITECTURES = <the value used for the main ParaView
+                              build>
+    ParaView_DIR = <the directory where ParaView was built>
+
+  where CMAKE_OSX_ARCHITECTURES is only required under OS X. If one is
+  unsure about where to install the plugins, the plugin directories
+  can be checked by launching ParaView and choosing the Tools ->
+  Manage Plugins/Extensions... menu. There one will see "Local plugins
+  are automatically searched for in..." followed by a list of
+  directories. Alternatively, if the plugins are being built within
+  OpenFOAM environment in conjunction with the ThirdParty-1.6
+  ParaView, all of these variables are set automatically as default
+  values.
+
+  Then build and install the plugins.
+
+    make
+    make install
+
+  By these steps the reader and the UI plugins
+  (libPOpenFOAMReaderPlugin and libPOpenFOAMPanelPlugin) are installed
+  to a local plugin directory.
+
+  [!!IMPORTANT!!] ParaView may have different remote plugin
+  directories than the local plugin directories when in client/server
+  mode. In such cases the installed BSDed plugin
+  (libPOpenFOAMReaderPlugin) under the local plugin directory must be
+  manually copied (or symbolic linked) by hand to one of the remote
+  plugin directories. To check remote plugin directories, start
+  ParaView in client/server configuration and choose Tools -> Manage
+  Plugins/Extensions... . Attempting to read OpenFOAM cases in
+  client/server mode without the plugin loaded as a remote plugin will
+  crash ParaView.
+
+  2.2.3 Building and installing only the BSDed plugin
+
+  If one would not like the GPLed plugin to be installed, point CMake
+  to the BSD subdirectory of the reader source tree when configuring
+  the plugin with CMake. The remaining steps are identical to the
+  previous section.
+
+ 2.3 Install as plugins (Windows)
+ ---------------------------------------
+
+  The overall installation steps are identical to those for Linux and
+  OS X except that one would probably use cmake-gui instead of ccmake
+  and Visual Studio IDE (open Project.sln under the plugin build
+  directory and build ALL_BUILD followed by INSTALL) instead of
+  make. The reader has been only tested with Visual Studio, and as
+  written in the Prerequisites section, Visual Studio 2008 SP1 or
+  later is strongly recommended. Building under MinGW has not been
+  tested.
+
+ 2.4 Install as a builtin reader
+ -------------------------------
+
+  Follow the "Install by patching the ParaView sources" section of
+  each INSTALL file under the BSD and GPL subdirectories. After that,
+  build ParaView as usual.
+
+3. Usage
 ========
 
-  BSD/    serial reader covered by the ParaView license
-  GPL/    parallel reader and additional reader UIs covered by GPL
-  README  this file
+  In order to open OpenFOAM case, either
 
-Installation
-============
+  - create an empty stub file <caseName>.foam right under the case
+    directory, where <caseName> is an arbitrary string other than
+    those that starts with "controlDict," and open <caseName>.foam or
 
-For now the installation configuration of the readers is a bit
-irregular: the installation of serial reader will be done by
-overwriting the existing reader in the ParaView source tree, while the
-parallelized reader and the additional reader UI will be built as plugins.
+  - create a symbolic link from controlDict to controlDict.foam and
+    open controlDict.foam.
 
-First install the serial reader as noted by BSD/ReleaseNotes, then
-proceed to install the parallel reader following
-GPL/ReleaseNotes.
+  There is also a script for user convenience that works like
+  paraFoam, called pvFoam, under the BSD/ subdirectory. The script
+  creates the stub file and launches ParaView in background. For
+  available options, run
 
-[!!IMPORTANT!!] You must install both of the serial and parallel
-reader even if you only need the serial reader.
+    pvFoam -help
 
-Notes
-=====
+  in a terminal.
 
-1. The reason why the readers are covered by different licenses comes
-   from the fact I am using the opensource version of Qt, which
-   enforces assignment of GPL for its adoption. In fact the only
-   materials that must be coverd by GPL are the additional UI. The
-   parallel reader may be covered by the BSD license if I divide the
-   building process of the parallel reader and the UI but I did this
-   way for simplicity of installation. I will be glad to hear a good
-   solution.
+  For general operations of the reader, see readerPanel.pdf.
 
-ToDo
-====
+4. Notes (General)
+==================
 
-1. Simplification of installation steps.
+  1. Dictionary syntax ~OpenFOAM expands only to $HOME/.OpenFOAM where
+     $HOME is the home directory of the user.
 
-/Takuya Oshima (oshima@eng.niigata-u.ac.jp), Oct. 05, 2008
+  2. The #remove dictionary directive is not supported.
+
+  3. The builtin cell-to-point filter works like a Cell Data to Point
+     Data filter in ParaView in that it just takes the average of cell
+     values connected to a point. The difference is that the builtin
+     filter takes boundary patch values into account. The filter is
+     faster but less accurate than the volPoint interpolator in
+     paraFoam, which further does inverse distance weighting of cell
+     values. The cell-to-point filter is still computationally
+     demanding thus can be turned off by unchecking "Create
+     cell-to-point filtered data" on the reader panel.
+
+  4. In order to create slices with volField data one may have to
+     extract internal mesh or turn off reading patches in the reader
+     panel before running the Slice filter, otherwise the sliced data
+     may be garbled.
+
+  5. When the List timesteps according to controlDict checkbox is
+     turned on, the reader lists time instances according to
+     descriptions in controlDict when (adjustTimeStep, writeControl)
+     == (yes, adjustableRunTime) or (no, timeStep) (i. e. writing
+     interval is supposed to be constant in simulated time), or
+     otherwise, lists all valid time directories.
+
+  6. The reader lists field names according to the "object" entry in
+     FoamFile header, whereas paraFoam lists according to the file
+     name of the object. Hence a valid FoamFile header is required for
+     every object.
+
+  7. Reading cellZones for polyhedral mesh with the Read Zones feature
+     may cause ParaView to thrash.
+
+  8. The reader only takes the "value" and "uniformValue" entries
+     into account for boundary fields. If none of the entries exists,
+     the corresponding patch-internal field values are used
+     (i. e. equivalent to zeroGradient b. c.).
+
+  9. When watching running case, one may occasionally see reader
+     errors due to race conditions where the reader reads up until the
+     end of file while the file is being written. Although I have put
+     much effort in avoiding crashes in such cases, there may still be
+     ones. Doing important tasks while watching case is thus not
+     recommended.
+
+  10. Multi-region case is detected by existence of mesh files under
+     subdirectories found in first two time directories. If a case is
+     determined to be a multi-region case, the selection of
+     internalMesh of the defaultRegion in the reader panel is turned
+     off by default.
+
+5. Notes (Parallel-specific)
+============================
+
+  1. The Case Type selection combo box determines whether the case to
+     be read is a reconstructed case (a serial case) or a decomposed
+     case (a case decomposed into processorX subdirectories). The
+     reader can read decomposed cases even when ParaView is run in
+     builtin server (serial) mode. If ParaView is running in
+     client/server mode and the servers (pvservers) are running in
+     parallel, the decomposed mesh regions are read in parallel.
+
+  2. The number of decomposed mesh regions and the number of pvserver
+     processes do not have to be identical, with a known exception of
+     the note 6 below. Processor subdirectories are detected by server
+     process 0, and each processorX subdirectory is assigned to a
+     server process in an interleaved way. For example, if one has 5
+     processor subdirectories and running 2 pvservers, the pvserver
+     process 0 reads processor0, processor2 and processor4
+     subdirectories while pvserver process 1 reads procssor1 and
+     processor3 subdirectories. Which process owns which decomposed
+     regions can be checked by Filters -> Process Id Scalars.
+
+  3. Timesteps are taken from a first processor subdirectory
+     (typically processor0) by server process 0 and broadcasted to
+     other processes.
+
+  4. In client/server mode, reconstructed case is loaded by pvserver
+     process 0. Merge Blocks -> D3 can be used in order to distribute
+     the data.
+
+  5. The reader does nothing about adding ghost cells. Hence one has
+     to see processor boundaries when the geometry is represented in
+     Wireframe or Surface. This could be especially problematic if one
+     wants to extract surfaces. In order to remove internal processor
+     boundaries from the output of the Extract Surface filter, run
+     Merge Blocks -> D3 -> Extract Surface. Similarly, when the reader
+     is run in serial or in builtin mode, the Clean to Grid filter can
+     be used in order to remove internal processor boundaries.
+
+  6. In order to run Stream Tracer when in parallel, a pvserver
+     process should be assigned to each decomposed mesh region, since
+     the tracer can handle inter-server process boundaries but cannot
+     for processor mesh region boundaries. For example if a case has
+     four decomposed regions, four pvserver processes should be
+     used. On the other hand, when in serial Clean to Grid can be used
+     in order to remove the region boundaries as noted in 5. If none
+     of the two applies, the streamlines will stop at appended region
+     boundaries.
+
+  7. The reader does not output processor boundary patches of
+     decomposed regions. In order to see the processor patches, each
+     processor subdirectory has to be opened as a separate case.
+
+6. Changes from the Previous (20081005) Version
+===============================================
+
+  - Added support for extended dictionary syntaxes of OpenFOAM 1.6,
+    notably the regex'ed dictionary keywords.
+
+  - The reader now compiles with drastically wider range of
+    compilers. The tested compilers include many GCC versions from
+    3.3.2 to 4.4.1 (including Apple's compilers under 64bit mode),
+    Intel Compiler 11/11.1, Sun Studio 12/12.1, Open64 4.2.1/4.2.2,
+    Visual Studio 2003.net/2008SP1.
+
+  - Added "watching a running case" functionality.
+
+  - Better detection and handling of multi region cases. The reader
+    now can read chtMultiRegionFoam/multiRegionHeater case. Note that
+    one will still get an error about missing "uniform" keywords in
+    buoyantPressure BC sections of the field files when reading the
+    case as is. In order to eliminate the error, either add the
+    uniform keyword to or remove entirely the value entries of the
+    buoyantPressure sections of the field files and
+    cahgeDictionaryDicts under the system subdirectory.
+
+  - Added support for single precision binary format.
+
+  - Improved performance in reading files in double precision binary
+    format.
+
+  - Improved installation steps.
+
+  - Rewritten pvFoam script.
+
+  - Changed the license of some more files to the BSDL.
+
+  - Workaround for a locale problem in string-to-floating conversion
+    under Qt 4.5/Linux.
+
+  - Fixed many bugs, including crashes (thanks to all the reporters).
+
+  - Other features that I don't remember.
+
+7. To do
+========
+
+  - Better BC handlings (at least fixedGradient types should be
+    supported).
+
+  - surfaceField support.
+
+  - Improved decomposed region allocation strategy. Eventually the
+    reader should support distributed cases.
+
+  - Better support for zones and add support for sets.
+
+  - Implementation of a true and fast cell-to-point interpolator.
+
+  - Porting the reader to VisIt (this is my ultimate goal indeed :) ).
+
+8. Acknowledgements
+===================
+
+  Thanks to
+
+  - Philippose Rajan, for contribution of nice and neat user
+    interface, extensively testing the code, interesting discussions
+    and suggestions.
+
+  - Mark Olesen, for contribution of pre-installation script (although
+    the script is not included in this release due to the changes in
+    the installation steps), testing and suggestions.
+
+  - Pierre-Olivier Dallaire, for testing.
+
+  - Masashi Imano, for testing the code.
+
+/Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>, Sep. 20, 2009

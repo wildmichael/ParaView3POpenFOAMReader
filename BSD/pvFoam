@@ -1,0 +1,148 @@
+#!/bin/sh
+#
+# Copyright (c) 2008-2009 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  * Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the
+#    distribution.
+#
+#  * Neither the name of the author nor the names of any contributors
+#    may be used to endorse or promote products derived from this
+#    software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+# LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Script
+#     pvFoam
+#
+# Description
+#     ParaView interface script for use with vtkPOpenFOAMReader.
+
+# Adjust as necessary.
+# You might also want to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH.
+paraviewPath="`which paraview`"
+# or in full path like paraviewPath=/opt/ParaView3/bin/paraview
+
+if [ ! -x "${paraviewPath}" -o -d "${paraviewPath}" ]; then
+    # not using LINENO which is not supported by dash (yet)
+    echo "ParaView not found; set paraviewPath at line" `awk '/paraviewPath/{print FNR;exit 0}' $0` "of $0."
+    exit 1
+fi
+
+ext=foam
+casePath=.
+script=${0##*/}
+background=yes
+trapCommand=trap
+
+while [ $# -gt 0 ]
+do
+    case "$1" in
+	-case)
+	    if [ $# -lt 2 ]; then
+		echo "-case requires path specification"
+		exit 1
+	    fi
+	    shift
+	    casePath="$1"
+	    ;;
+	-clientServer|-cs)
+	    if [ $# -lt 2 ]; then
+		echo "-clientServer or -cs requires specification of the server resource name"
+		exit 1
+	    fi
+	    shift
+	    csResourceName="$1"
+	    ;;
+	-foreground|-fg)
+	    background=no
+	    ;;
+	-keepStub|-ks)
+	    trapCommand=:
+	    ;;
+	-help)
+	    echo "Usage: ${script} [-case <dir>] [-clientServer|-cs <server resource name>] [-foreground|-fg] [-keepStub|-ks] [-help]"
+	    exit 0
+	    ;;
+    esac
+    shift
+done
+
+# cd to the case directory
+if ! cd "${casePath}" > /dev/null 2>&1; then
+    echo "Cannot change directory to \"${casePath}\"; exiting"
+    exit 1
+fi
+
+caseName="${PWD##*/}"
+
+# see if caseName starts with controlDict or the case is in the root directory.
+if [ "${caseName#controlDict}" != "${caseName}" -o ! "${caseName}" ]; then
+    # Use case.foam as file name given to ParaView
+    caseName="case"
+fi
+
+fileName="${caseName}.${ext}"
+if [ -e "${fileName}" ]; then
+    if [ ! -r "${fileName}" ]; then
+	echo "Stub ${fileName} exists but not readable; exiting"
+	exit 1
+    fi
+    trapCommand=:
+else
+    if ! touch "${fileName}" > /dev/null 2>&1; then
+	echo "Cannot create stub ${fileName}; exiting"
+	exit 1
+    fi
+fi
+
+# set the locale where ParaView is run under to "C" so that the
+# interpretation of decimal points by the system routines are not
+# affected
+export LANG=C
+export LC_ALL=C
+
+# specify fileName with full path so that it can easily be accessed
+# later with File->Recent Files
+if [ "${background}" = "yes" ]; then
+    (
+	${trapCommand} "rm -f \"${fileName}\" ; exit 0" \
+	    EXIT HUP INT PIPE ALRM TERM USR1 USR2 ;
+	if [ "${csResourceName}" ]; then
+	    "${paraviewPath}" --data="${PWD}/${fileName}" \
+		--server="${csResourceName}"
+	else
+	    "${paraviewPath}" --data="${PWD}/${fileName}"
+	fi
+    ) &
+else
+    ${trapCommand} "rm -f \"${fileName}\" ; exit 0" \
+	EXIT HUP INT PIPE ALRM TERM USR1 USR2
+    if [ "${csResourceName}" ]; then
+	"${paraviewPath}" --data="${PWD}/${fileName}" \
+	    --server="${csResourceName}"
+    else
+	"${paraviewPath}" --data="${PWD}/${fileName}"
+    fi
+fi
+
+#------------------------------------------------------------------------------

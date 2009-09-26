@@ -12,9 +12,9 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkOpenFOAMReader - reads a dataset in OpenFOAM format
+// .NAME vtkNewOpenFOAMReader - reads a dataset in OpenFOAM format
 // .SECTION Description
-// vtkOpenFOAMReader creates a multiblock dataset. It reads mesh
+// vtkNewOpenFOAMReader creates a multiblock dataset. It reads mesh
 // information and time dependent data.  The polyMesh folders contain
 // mesh information. The time folders contain transient data for the
 // cells. Each folder can contain any number of data files.
@@ -35,13 +35,8 @@
 // decomposed cases in conjunction with vtkPOpenFOAMReader, et. al. by
 // Takuya Oshima of Niigata University, Japan (oshima@eng.niigata-u.ac.jp).
 
-<<<<<<< .working
-// version 2008-09-29
-
-=======
->>>>>>> .merge-right.r120
-#ifndef __vtkOpenFOAMReader_h
-#define __vtkOpenFOAMReader_h
+#ifndef __vtkNewOpenFOAMReader_h
+#define __vtkNewOpenFOAMReader_h
 
 #include "vtkMultiBlockDataSetAlgorithm.h"
 
@@ -54,11 +49,16 @@ class vtkStringArray;
 
 class vtkOpenFOAMReaderPrivate;
 
-class VTK_IO_EXPORT vtkOpenFOAMReader : public vtkMultiBlockDataSetAlgorithm
+
+class
+#if !defined(POpenFOAMReaderPlugin_EXPORTS)
+VTK_IO_EXPORT
+#endif
+vtkNewOpenFOAMReader : public vtkMultiBlockDataSetAlgorithm
 {
 public:
-  static vtkOpenFOAMReader *New();
-  vtkTypeRevisionMacro(vtkOpenFOAMReader, vtkMultiBlockDataSetAlgorithm);
+  static vtkNewOpenFOAMReader *New();
+  vtkTypeRevisionMacro(vtkNewOpenFOAMReader, vtkMultiBlockDataSetAlgorithm);
   void PrintSelf(ostream &, vtkIndent);
 
   // Description:
@@ -205,6 +205,13 @@ public:
   vtkGetMacro(PositionsIsIn13Format, int);
   vtkBooleanMacro(PositionsIsIn13Format, int);
 
+  // Option for reading single precision binary format
+  // Description:
+  // Set/Get whether the binary files are in single precision
+  vtkSetMacro(IsSinglePrecisionBinary, int);
+  vtkGetMacro(IsSinglePrecisionBinary, int);
+  vtkBooleanMacro(IsSinglePrecisionBinary, int);
+
   // Description:
   // Determine if time directories are to be listed according to controlDict
   vtkSetMacro(ListTimeStepsByControlDict, int);
@@ -225,7 +232,7 @@ public:
 
   void SetRefresh() { this->Refresh = true; this->Modified(); }
 
-  void SetParent(vtkOpenFOAMReader *parent) { this->Parent = parent; }
+  void SetParent(vtkNewOpenFOAMReader *parent) { this->Parent = parent; }
   //BTX
   int MakeInformationVector(vtkInformationVector *, const vtkStdString &);
   //ETX
@@ -252,6 +259,9 @@ protected:
 
   // for reading old binary lagrangian/positions format
   int PositionsIsIn13Format;
+
+  // for reading single precision binary format
+  int IsSinglePrecisionBinary;
 
   // for reading point/face/cell-Zones
   int ReadZones;
@@ -284,6 +294,7 @@ protected:
   int CreateCellToPointOld;
   int DecomposePolyhedraOld;
   int PositionsIsIn13FormatOld;
+  int IsSinglePrecisionBinaryOld;
   int AddDimensionsToArrayNamesOld;
   int ReadZonesOld;
 
@@ -295,8 +306,8 @@ protected:
   // index of the active reader
   int CurrentReaderIndex;
 
-  vtkOpenFOAMReader();
-  ~vtkOpenFOAMReader();
+  vtkNewOpenFOAMReader();
+  ~vtkNewOpenFOAMReader();
   int RequestInformation(vtkInformation *, vtkInformationVector **,
     vtkInformationVector *);
   int RequestData(vtkInformation *, vtkInformationVector **,
@@ -304,15 +315,16 @@ protected:
 
   void CreateCasePath(vtkStdString &, vtkStdString &);
   void SetTimeInformation(vtkInformationVector *, vtkDoubleArray *);
+  void GetRegions(vtkStringArray *, const vtkStdString &);
   void CreateCharArrayFromString(vtkCharArray *, const char *, vtkStdString &);
   void UpdateStatus();
   void UpdateProgress(double);
 
 private:
-  vtkOpenFOAMReader *Parent;
+  vtkNewOpenFOAMReader *Parent;
 
-  vtkOpenFOAMReader(const vtkOpenFOAMReader&);  // Not implemented.
-  void operator=(const vtkOpenFOAMReader&);  // Not implemented.
+  vtkNewOpenFOAMReader(const vtkNewOpenFOAMReader&);  // Not implemented.
+  void operator=(const vtkNewOpenFOAMReader&);  // Not implemented.
 
   int GetNumberOfSelectionArrays(vtkDataArraySelection *);
   int GetSelectionArrayStatus(vtkDataArraySelection *, const char *);
