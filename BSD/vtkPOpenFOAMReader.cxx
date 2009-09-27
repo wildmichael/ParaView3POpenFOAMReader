@@ -20,6 +20,7 @@
 #include "vtkAppendCompositeDataLeaves.h"
 #include "vtkCharArray.h"
 #include "vtkCollection.h"
+#include "vtkCompositeDataIterator.h"
 #include "vtkDataArraySelection.h"
 #include "vtkDirectory.h"
 #include "vtkDoubleArray.h"
@@ -304,24 +305,27 @@ int vtkPOpenFOAMReader::RequestInformation(vtkInformation *request,
 int vtkPOpenFOAMReader::RequestData(vtkInformation *request,
     vtkInformationVector **inputVector, vtkInformationVector *outputVector)
 {
-  if (this->CaseType == RECONSTRUCTED_CASE)
-    {
-    int ret = 1;
-    if (this->ProcessId == 0)
-      {
-      ret = this->Superclass::RequestData(request, inputVector, outputVector);
-      }
-    this->BroadcastStatus(ret);
-    this->GatherMetaData();
-    return ret;
-    }
-
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
   vtkMultiBlockDataSet
       *output =
           vtkMultiBlockDataSet::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
 
   int ret = 1;
+
+  if (this->CaseType == RECONSTRUCTED_CASE)
+    {
+    if (this->ProcessId == 0)
+      {
+      ret = this->Superclass::RequestData(request, inputVector, outputVector);
+      }
+
+    this->BroadcastStructure(output, 1);
+    this->BroadcastStatus(ret);
+    this->GatherMetaData();
+
+    return ret;
+    }
+
   if (this->Superclass::Readers->GetNumberOfItems() > 0)
     {
     int nSteps = 0;
@@ -387,6 +391,11 @@ int vtkPOpenFOAMReader::RequestData(vtkInformation *request,
     output->Initialize();
     }
 
+  if (this->NumProcesses > 1 && this->MaximumNumberOfPieces < this->NumProcesses)
+    {
+    this->BroadcastStructure(output, this->MaximumNumberOfPieces);
+    }
+
   this->Superclass::UpdateStatus();
   this->MTimeOld = this->GetMTime();
 
@@ -415,6 +424,89 @@ void vtkPOpenFOAMReader::GatherMetaData()
     // when the number of processes is 1 assuming there's no duplicate
     // entry within a process
     this->AllGather(this->Superclass::LagrangianPaths);
+    }
+}
+
+//-----------------------------------------------------------------------------
+// Helper function for BroadcastStructure()
+int vtkPOpenFOAMReader::ConstructBlocks(vtkMultiBlockDataSet *ds, int *dataTypes,
+    int leafI)
+{
+  ds->SetNumberOfBlocks(dataTypes[leafI++]);
+  for (unsigned int blockI = 0; blockI < ds->GetNumberOfBlocks(); blockI++)
+    {
+    if (dataTypes[leafI++] == VTK_MULTIBLOCK_DATA_SET)
+      {
+      vtkMultiBlockDataSet *mbds = ds->NewInstance();
+      leafI = this->ConstructBlocks(mbds, dataTypes, leafI);
+      ds->SetBlock(blockI, mbds);
+      mbds->Delete();
+      }
+    }
+  return leafI;
+}
+
+//-----------------------------------------------------------------------------
+// Broadcast the structure of a multiblock dataset. Everything has to
+// be self-coded because
+// vtkCommunicator::{Send,Receive}MultiBlockDataSet()s in ParaView
+// 3.6.1 are broken (whereas those in 3.7-cvs have been fixed).
+void vtkPOpenFOAMReader::BroadcastStructure(vtkMultiBlockDataSet *ds, const int startProc)
+{
+  if (this->NumProcesses <= 1)
+    {
+    return;
+    }
+
+  if (this->ProcessId == 0)
+    {
+    vtkCompositeDataIterator *iter = ds->NewIterator();
+    iter->SkipEmptyNodesOff();
+    iter->VisitOnlyLeavesOff();
+    int nLeaves = 1; // in order to accommodate the number of blocks of the top
+    for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+      {
+      nLeaves++;
+      vtkDataObject *leaf = iter->GetCurrentDataObject();
+      if (leaf != NULL && vtkMultiBlockDataSet::SafeDownCast(leaf) != NULL)
+        {
+        nLeaves++;
+        }
+      }
+    int *dataTypes = new int [nLeaves];
+    dataTypes[0] = ds->GetNumberOfBlocks();
+    int leafI = 1;
+    for (iter->InitTraversal(); !iter->IsDoneWithTraversal();
+         iter->GoToNextItem(), leafI++)
+      {
+      vtkDataObject *leaf = iter->GetCurrentDataObject();
+      vtkMultiBlockDataSet *mbds;
+      if (leaf != NULL
+          && (mbds = vtkMultiBlockDataSet::SafeDownCast(leaf)) != NULL)
+        {
+        dataTypes[leafI++] = VTK_MULTIBLOCK_DATA_SET;
+        dataTypes[leafI] = static_cast<int>(mbds->GetNumberOfBlocks());
+        }
+      else
+        {
+        dataTypes[leafI] = -1;
+        }
+      }
+    for (int procI = startProc; procI < this->NumProcesses; procI++)
+      {
+      this->Controller->Send(&nLeaves, 1, procI, 101);
+      this->Controller->Send(dataTypes, nLeaves, procI, 102);
+      }
+    delete [] dataTypes;
+    }
+  else if (this->ProcessId >= startProc)
+    {
+    int nLeaves;
+    this->Controller->Receive(&nLeaves, 1, 0, 101);
+    int *dataTypes = new int [nLeaves];
+    this->Controller->Receive(dataTypes, nLeaves, 0, 102);
+    this->ConstructBlocks(ds, dataTypes, 0);
+    delete [] dataTypes;
     }
 }
 
@@ -458,7 +550,7 @@ void vtkPOpenFOAMReader::Broadcast(vtkStringArray *sa)
 }
 
 //-----------------------------------------------------------------------------
-// AllGather vtkStringArray from and to all processes
+// AllGather vtkStringArrays from and to all processes
 void vtkPOpenFOAMReader::AllGather(vtkStringArray *s)
 {
   vtkIdType length = 0;

@@ -8,6 +8,7 @@ producer of the OpenFOAM software and owner of the OPENFOAM(R) and
 OpenCFD(R) trade marks. This offering is not approved or endorsed by
 OpenCFD Limited.
 
+
 1. Manifest and Licenses
 ========================
 
@@ -32,6 +33,7 @@ OpenCFD Limited.
   are licensed under the GPL anyway. However it will matter if one
   plans to create a proprietary variant of ParaView with a commercial
   edition of Qt, or Qt 4.5 or later.
+
 
 2. Installation
 ===============
@@ -96,7 +98,7 @@ OpenCFD Limited.
   by issuing the following commands under OpenFOAM environment:
 
     cd $WM_THIRD_PARTY_DIR
-    rm -rf paraview-3.6.1/platforms
+    mv ${ParaView_DIR} ${ParaView_DIR}.orig
     ./makeParaView -mpi
 
   2.2.2 Building and installing the plugins
@@ -161,11 +163,11 @@ OpenCFD Limited.
   The overall installation steps are identical to those for Linux and
   OS X except that one would probably use cmake-gui instead of ccmake
   and Visual Studio IDE (open Project.sln under the plugin build
-  directory and build ALL_BUILD followed by INSTALL) instead of
-  make. The reader has been only tested with Visual Studio, and as
-  written in the Prerequisites section, Visual Studio 2008 SP1 or
-  later is strongly recommended. Building under MinGW has not been
-  tested.
+  directory, set Configuration to Release and build ALL_BUILD followed
+  by INSTALL) instead of make. The reader has been only tested with
+  Visual Studio, and as written in the Prerequisites section, Visual
+  Studio 2008 SP1 or later is strongly recommended. Building under
+  MinGW has not been tested.
 
  2.4 Install as a builtin reader
  -------------------------------
@@ -173,6 +175,7 @@ OpenCFD Limited.
   Follow the "Install by patching the ParaView sources" section of
   each INSTALL file under the BSD and GPL subdirectories. After that,
   build ParaView as usual.
+
 
 3. Usage
 ========
@@ -196,6 +199,7 @@ OpenCFD Limited.
   in a terminal.
 
   For general operations of the reader, see readerPanel.pdf.
+
 
 4. Notes (General)
 ==================
@@ -242,16 +246,17 @@ OpenCFD Limited.
 
   9. When watching running case, one may occasionally see reader
      errors due to race conditions where the reader reads up until the
-     end of file while the file is being written. Although I have put
-     much effort in avoiding crashes in such cases, there may still be
-     ones. Doing important tasks while watching case is thus not
-     recommended.
+     end of file while the file is being written. Although the
+     developer has put much effort in avoiding crashes in such cases,
+     there may still be ones. Doing important tasks while watching
+     case is thus not recommended.
 
   10. Multi-region case is detected by existence of mesh files under
      subdirectories found in first two time directories. If a case is
      determined to be a multi-region case, the selection of
      internalMesh of the defaultRegion in the reader panel is turned
      off by default.
+
 
 5. Notes (Parallel-specific)
 ============================
@@ -281,7 +286,10 @@ OpenCFD Limited.
 
   4. In client/server mode, reconstructed case is loaded by pvserver
      process 0. Merge Blocks -> D3 can be used in order to distribute
-     the data.
+     the data. NB: Merge Blocks is still required nevertheless
+     ParaView 3.6.1 and on D3 can be applied to multiblock data, due
+     to an incompatibility with D3 of the reader which causes D3 to
+     deadlock. The developer is working on resolving the issue.
 
   5. The reader does nothing about adding ghost cells. Hence one has
      to see processor boundaries when the geometry is represented in
@@ -306,46 +314,13 @@ OpenCFD Limited.
      decomposed regions. In order to see the processor patches, each
      processor subdirectory has to be opened as a separate case.
 
-6. Changes from the Previous (20081005) Version
+
+6. Changes from the Previous (20090920) Version
 ===============================================
 
-  - Added support for extended dictionary syntaxes of OpenFOAM 1.6,
-    notably the regex'ed dictionary keywords.
+  - Fixed deadlock when Filters->D3 is directly applied right after
+    the reader output.
 
-  - The reader now compiles with drastically wider range of
-    compilers. The tested compilers include many GCC versions from
-    3.3.2 to 4.4.1 (including Apple's compilers under 64bit mode),
-    Intel Compiler 11/11.1, Sun Studio 12/12.1, Open64 4.2.1/4.2.2,
-    Visual Studio 2003.net/2008SP1.
-
-  - Added "watching a running case" functionality.
-
-  - Better detection and handling of multi region cases. The reader
-    now can read chtMultiRegionFoam/multiRegionHeater case. Note that
-    one will still get an error about missing "uniform" keywords in
-    buoyantPressure BC sections of the field files when reading the
-    case as is. In order to eliminate the error, either add the
-    uniform keyword to or remove entirely the value entries of the
-    buoyantPressure sections of the field files and
-    cahgeDictionaryDicts under the system subdirectory.
-
-  - Added support for single precision binary format.
-
-  - Improved performance in reading files in double precision binary
-    format.
-
-  - Improved installation steps.
-
-  - Rewritten pvFoam script.
-
-  - Changed the license of some more files to the BSDL.
-
-  - Workaround for a locale problem in string-to-floating conversion
-    under Qt 4.5/Linux.
-
-  - Fixed many bugs, including crashes (thanks to all the reporters).
-
-  - Other features that I don't remember.
 
 7. To do
 ========
@@ -364,6 +339,7 @@ OpenCFD Limited.
 
   - Porting the reader to VisIt (this is my ultimate goal indeed :) ).
 
+
 8. Acknowledgements
 ===================
 
@@ -375,7 +351,8 @@ OpenCFD Limited.
 
   - Mark Olesen, for contribution of pre-installation script (although
     the script is not included in this release due to the changes in
-    the installation steps), testing and suggestions.
+    the installation steps), testing, suggestions and an Wiki page
+    update.
 
   - Pierre-Olivier Dallaire, for testing.
 

@@ -108,6 +108,8 @@ private:
   void GatherMetaData();
   void BroadcastStatus(int &);
   void Broadcast(vtkStringArray *);
+  int ConstructBlocks(vtkMultiBlockDataSet *, int *, int);
+  void BroadcastStructure(vtkMultiBlockDataSet *, const int);
   void AllGather(vtkStringArray *);
   void AllGather(vtkDataArraySelection *);
 };
