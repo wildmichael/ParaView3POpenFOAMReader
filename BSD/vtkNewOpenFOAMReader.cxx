@@ -342,7 +342,7 @@ private:
   void ConstructDimensions(vtkStdString *, vtkFoamDict *);
   bool ReadFieldFile(vtkFoamIOobject *, vtkFoamDict *, const vtkStdString &,
       vtkDataArraySelection *);
-  vtkFloatArray *FillField(vtkFoamEntry *, int, vtkFoamIOobject *,
+  vtkFloatArray *FillField(vtkFoamEntry *, vtkFoamEntry *, int, vtkFoamIOobject *,
       const vtkStdString &, const bool);
   void GetVolFieldAtTimeStep(vtkUnstructuredGrid *, vtkMultiBlockDataSet *,
       const vtkStdString &);
@@ -7058,8 +7058,8 @@ bool vtkOpenFOAMReaderPrivate::ReadFieldFile(vtkFoamIOobject *ioPtr,
 
 //-----------------------------------------------------------------------------
 vtkFloatArray *vtkOpenFOAMReaderPrivate::FillField(vtkFoamEntry *entryPtr,
-    int nElements, vtkFoamIOobject *ioPtr, const vtkStdString &fieldType,
-    const bool isUniformFixedValueBC)
+    vtkFoamEntry *refEntryPtr, int nElements, vtkFoamIOobject *ioPtr,
+    const vtkStdString &fieldType, const bool isUniformFixedValueBC)
     // the isUniformFixedValueBC argument can be determined in compile-time
     // thus better use a template, which unfortunately is not possible due to
     // broken gcc-3.3
@@ -7068,13 +7068,64 @@ vtkFloatArray *vtkOpenFOAMReaderPrivate::FillField(vtkFoamEntry *entryPtr,
   vtkFoamEntry &entry = *entryPtr;
   const vtkStdString &className = ioPtr->GetClassName();
 
+  vtkFoamToken::tokenType refEntryType;
+  int nRefComponents;
+  float refTuple[9];
+  if (refEntryPtr != NULL)
+    {
+    if (refEntryPtr->FirstValue().GetType() == vtkFoamToken::SCALAR
+        || refEntryPtr->FirstValue().GetType() == vtkFoamToken::LABEL)
+      {
+      refEntryType = vtkFoamToken::SCALAR;
+      nRefComponents = 1;
+      refTuple[0] = refEntryPtr->ToFloat();
+      }
+    else if (refEntryPtr->FirstValue().GetType() == vtkFoamToken::LABELLIST)
+      {
+      refEntryType = vtkFoamToken::SCALARLIST;
+      vtkIntArray &ll = refEntryPtr->LabelList();
+      nRefComponents = ll.GetNumberOfTuples();
+      for (int componentI = 0; componentI < nRefComponents; componentI++)
+        {
+        refTuple[componentI] = static_cast<float>(ll.GetValue(componentI));
+        }
+      }
+    else if (refEntryPtr->FirstValue().GetType() == vtkFoamToken::SCALARLIST)
+      {
+      refEntryType = vtkFoamToken::SCALARLIST;
+      vtkFloatArray &sl = refEntryPtr->ScalarList();
+      nRefComponents = sl.GetNumberOfTuples();
+      for (int componentI = 0; componentI < nRefComponents; componentI++)
+        {
+        refTuple[componentI] = sl.GetValue(componentI);
+        }
+      }
+    else
+      {
+      vtkErrorMacro(<< "Wrong referenceLevel type");
+      return NULL;
+      }
+    }
+
   // the isUniformFixedValueBC argument is for uniformFixedValue B.C.
   if (entry.FirstValue().GetIsUniform() == vtkFoamEntryValue::UNIFORM
       || isUniformFixedValueBC)
     {
     if (entry.FirstValue().GetType() == vtkFoamToken::SCALAR || entry.FirstValue().GetType() == vtkFoamToken::LABEL)
       {
-      const float num = entry.ToFloat();
+      float num = entry.ToFloat();
+      if (refEntryPtr != NULL)
+        {
+        if (refEntryType == vtkFoamToken::SCALAR)
+          {
+          num += refTuple[0];
+          }
+        else
+          {
+          vtkErrorMacro(<<"Wrong referenceLevel type for uniform scalar field");
+          return NULL;
+          }
+        }
       data = vtkFloatArray::New();
       data->SetNumberOfValues(nElements);
       for (int i = 0; i < nElements; i++)
@@ -7084,7 +7135,7 @@ vtkFloatArray *vtkOpenFOAMReaderPrivate::FillField(vtkFoamEntry *entryPtr,
       }
     else
       {
-      float tupleBuffer[9], *tuple;
+      float tuple[9];
       int nComponents;
       // have to determine the type of vector
       if (entry.FirstValue().GetType() == vtkFoamToken::LABELLIST)
@@ -7093,20 +7144,38 @@ vtkFloatArray *vtkOpenFOAMReaderPrivate::FillField(vtkFoamEntry *entryPtr,
         nComponents = ll.GetNumberOfTuples();
         for (int componentI = 0; componentI < nComponents; componentI++)
           {
-          tupleBuffer[componentI] = static_cast<float>(ll.GetValue(componentI));
+          tuple[componentI] = static_cast<float>(ll.GetValue(componentI));
           }
-        tuple = tupleBuffer;
         }
       else if (entry.FirstValue().GetType() == vtkFoamToken::SCALARLIST)
         {
         vtkFloatArray& sl = entry.ScalarList();
         nComponents = sl.GetSize();
-        tuple = sl.GetPointer(0);
+        for (int componentI = 0; componentI < nComponents; componentI++)
+          {
+          tuple[componentI] = sl.GetValue(componentI);
+          }
         }
       else
         {
-        vtkErrorMacro(<<"Wrong list type for uniform field");
+        vtkErrorMacro(<< "Wrong list type for uniform field");
         return NULL;
+        }
+
+      if (refEntryPtr != NULL)
+        {
+        if (refEntryType == vtkFoamToken::SCALARLIST && nRefComponents == nComponents)
+          {
+          for (int componentI = 0; componentI < nComponents; componentI++)
+            {
+            tuple[componentI] += refTuple[componentI];
+            }
+          }
+        else
+          {
+          vtkErrorMacro(<< "Wrong referenceLevel type");
+          return NULL;
+          }
         }
 
       if ((fieldType == "SphericalTensorField" && nComponents == 1)
@@ -7160,6 +7229,32 @@ vtkFloatArray *vtkOpenFOAMReaderPrivate::FillField(vtkFoamEntry *entryPtr,
         return NULL;
         }
       data = static_cast<vtkFloatArray *>(entry.Ptr());
+
+      if (refEntryPtr != NULL)
+        {
+        const int nComponents = data->GetNumberOfComponents();
+        if ((refEntryType == vtkFoamToken::SCALAR
+            && entry.FirstValue().GetType() == vtkFoamToken::SCALARLIST)
+            || (refEntryType == vtkFoamToken::SCALARLIST
+            && entry.FirstValue().GetType() == vtkFoamToken::VECTORLIST
+            && nRefComponents == nComponents))
+          {
+          for(int tupleI = 0; tupleI < nTuples; tupleI++)
+            {
+            float *tuple = data->GetPointer(nComponents * tupleI);
+            for (int componentI = 0; componentI < nComponents; componentI++)
+              {
+              tuple[componentI] += refTuple[componentI];
+              }
+            }
+          }
+        else
+          {
+          vtkErrorMacro(<< "Wrong referenceLevel type");
+          return NULL;
+          }
+        }
+
 #if vtksys_DATE_STAMP_FULL >= 20080620
       // swap the components of symmTensor to match the component
       // names in paraview
@@ -7340,9 +7435,10 @@ void vtkOpenFOAMReaderPrivate::GetVolFieldAtTimeStep(
     return;
     }
 
+  vtkFoamEntry *rEntry = dict.Lookup("referenceLevel");
   vtkStdString fieldType = io.GetClassName().substr(3, vtkStdString::npos);
   vtkFloatArray *iData =
-      this->FillField(iEntry, this->NumCells, &io, fieldType, false);
+      this->FillField(iEntry, rEntry, this->NumCells, &io, fieldType, false);
   if (iData == NULL)
     {
     return;
@@ -7512,7 +7608,7 @@ void vtkOpenFOAMReaderPrivate::GetVolFieldAtTimeStep(
       vtkFoamEntry *vEntry = bEntryI->Dictionary().Lookup("value");
       if (vEntry != NULL) // the boundary has a value entry
         {
-        vData = this->FillField(vEntry, nFaces, &io, fieldType, false);
+        vData = this->FillField(vEntry, rEntry, nFaces, &io, fieldType, false);
         if (vData == NULL)
           {
           iData->Delete();
@@ -7539,7 +7635,7 @@ void vtkOpenFOAMReaderPrivate::GetVolFieldAtTimeStep(
             vtkFoamEntry *uvEntry = bEntryI->Dictionary().Lookup("uniformValue");
             if (uvEntry != NULL) // and has a uniformValue entry
               {
-              vData = this->FillField(uvEntry, nFaces, &io, fieldType, true);
+              vData = this->FillField(uvEntry, rEntry, nFaces, &io, fieldType, true);
               if (vData == NULL)
                 {
                 iData->Delete();
@@ -7711,8 +7807,9 @@ void vtkOpenFOAMReaderPrivate::GetPointFieldAtTimeStep(
     return;
     }
 
+  vtkFoamEntry *rEntry = dict.Lookup("referenceLevel");
   vtkStdString fieldType = io.GetClassName().substr(5, vtkStdString::npos);
-  vtkFloatArray *iData = this->FillField(iEntry, this->NumPoints, &io,
+  vtkFloatArray *iData = this->FillField(iEntry, rEntry, this->NumPoints, &io,
       fieldType, false);
   if (iData == NULL)
     {

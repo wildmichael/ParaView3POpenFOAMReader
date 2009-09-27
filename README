@@ -321,6 +321,8 @@ OpenCFD Limited.
   - Fixed deadlock when Filters->D3 is directly applied right after
     the reader output.
 
+  - Added support for referenceLevel.
+
 
 7. To do
 ========

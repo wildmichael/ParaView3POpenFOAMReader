@@ -492,6 +492,7 @@ void vtkPOpenFOAMReader::BroadcastStructure(vtkMultiBlockDataSet *ds, const int 
         dataTypes[leafI] = -1;
         }
       }
+    iter->Delete();
     for (int procI = startProc; procI < this->NumProcesses; procI++)
       {
       this->Controller->Send(&nLeaves, 1, procI, 101);
