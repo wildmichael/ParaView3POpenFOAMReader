@@ -7189,7 +7189,7 @@ vtkFloatArray *vtkOpenFOAMReaderPrivate::FillField(vtkFoamEntry *entryPtr,
 #if vtksys_DATE_STAMP_FULL >= 20080620
         // swap the components of symmTensor to match the component
         // names in paraview
-        if(nComponents == 6)
+        if (nComponents == 6)
           {
           const float symxy = tuple[1], symxz = tuple[2], symyy = tuple[3];
           const float symyz = tuple[4], symzz = tuple[5];
@@ -7239,7 +7239,7 @@ vtkFloatArray *vtkOpenFOAMReaderPrivate::FillField(vtkFoamEntry *entryPtr,
             && entry.FirstValue().GetType() == vtkFoamToken::VECTORLIST
             && nRefComponents == nComponents))
           {
-          for(int tupleI = 0; tupleI < nTuples; tupleI++)
+          for (int tupleI = 0; tupleI < nTuples; tupleI++)
             {
             float *tuple = data->GetPointer(nComponents * tupleI);
             for (int componentI = 0; componentI < nComponents; componentI++)
@@ -7259,9 +7259,9 @@ vtkFloatArray *vtkOpenFOAMReaderPrivate::FillField(vtkFoamEntry *entryPtr,
       // swap the components of symmTensor to match the component
       // names in paraview
       const int nComponents = data->GetNumberOfComponents();
-      if(nComponents == 6)
+      if (nComponents == 6)
         {
-        for(int tupleI = 0; tupleI < nTuples; tupleI++)
+        for (int tupleI = 0; tupleI < nTuples; tupleI++)
           {
           float *tuple = data->GetPointer(nComponents * tupleI);
           const float symxy = tuple[1], symxz = tuple[2], symyy = tuple[3];
