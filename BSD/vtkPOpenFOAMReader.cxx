@@ -396,7 +396,7 @@ int vtkPOpenFOAMReader::RequestData(vtkInformation *request,
 
   output->GetFieldData()->AddArray(this->Superclass::CasePath);
 
-  if (this->NumProcesses > 1 && this->MaximumNumberOfPieces < this->NumProcesses)
+  if (this->MaximumNumberOfPieces < this->NumProcesses)
     {
     this->BroadcastStructure(output, this->MaximumNumberOfPieces);
     }
