@@ -3328,7 +3328,7 @@ public:
             for (const vtkFoamDict *uDictPtr = this; uDictPtr != NULL;)
               {
               const vtkFoamEntry *identifiedEntry
-                  = uDictPtr->LookupRegEx(identifier); // do a regex search
+                  = uDictPtr->LookupLiteral(identifier); // do a regex search
               if (identifiedEntry != NULL)
                 {
                 if (identifiedEntry->size() == 0
@@ -4004,7 +4004,7 @@ void vtkFoamEntry::Read(vtkFoamIOobject& io)
 
       for (const vtkFoamDict *uDictPtr = this->UpperDictPtr; uDictPtr != NULL;)
         {
-        const vtkFoamEntry *identifiedEntry = uDictPtr->LookupRegEx(identifier);
+        const vtkFoamEntry *identifiedEntry = uDictPtr->LookupLiteral(identifier);
 
         if (identifiedEntry != NULL)
           {
@@ -4027,7 +4027,7 @@ void vtkFoamEntry::Read(vtkFoamIOobject& io)
               // dictionary in this parser. Only for compatibility
               // with the genuine parser
               throw vtkFoamError() << "dictionary cannot be substituted as an "
-                  "entry value. Try {" << identifier << ";} instead of "
+                  "entry value. Try {$" << identifier << ";} instead of $"
                   << identifier << ".";
               }
             this->Superclass::push_back(new vtkFoamEntryValue(

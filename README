@@ -278,27 +278,23 @@ OpenCFD Limited.
      process 0 reads processor0, processor2 and processor4
      subdirectories while pvserver process 1 reads procssor1 and
      processor3 subdirectories. Which process owns which decomposed
-     regions can be checked by Filters -> Process Id Scalars.
+     regions can be checked by Process Id Scalars.
 
   3. Timesteps are taken from a first processor subdirectory
      (typically processor0) by server process 0 and broadcasted to
      other processes.
 
   4. In client/server mode, reconstructed case is loaded by pvserver
-     process 0. Merge Blocks -> D3 can be used in order to distribute
-     the data. NB: Merge Blocks is still required nevertheless
-     ParaView 3.6.1 and on D3 can be applied to multiblock data, due
-     to an incompatibility with D3 of the reader which causes D3 to
-     deadlock. The developer is working on resolving the issue.
+     process 0. D3 can be used in order to distribute the data.
 
   5. The reader does nothing about adding ghost cells. Hence one has
      to see processor boundaries when the geometry is represented in
      Wireframe or Surface. This could be especially problematic if one
      wants to extract surfaces. In order to remove internal processor
-     boundaries from the output of the Extract Surface filter, run
-     Merge Blocks -> D3 -> Extract Surface. Similarly, when the reader
-     is run in serial or in builtin mode, the Clean to Grid filter can
-     be used in order to remove internal processor boundaries.
+     boundaries from the output of the Extract Surface filter, run D3
+     before Extract Surface. Similarly, when the reader is run in
+     serial or in builtin mode, the Clean to Grid filter can be used
+     in order to remove internal processor boundaries.
 
   6. In order to run Stream Tracer when in parallel, a pvserver
      process should be assigned to each decomposed mesh region, since
@@ -318,11 +314,10 @@ OpenCFD Limited.
 6. Changes from the Previous (20090920) Version
 ===============================================
 
-  - Fixed deadlock when Filters->D3 is directly applied right after
-    the reader output. You may still experience lockup when using D3
-    due to a bug in ParaView
-    (http://paraview.org/Bug/view.php?id=9626) which has been fixed in
-    ParaView 3.7-cvs since 30, Sep. 2009.
+  - Fixed deadlock when D3 is directly applied right after the reader
+    output. One may still experience lockup when using D3 due to a bug
+    in ParaView (http://paraview.org/Bug/view.php?id=9626) if one is
+    using ParaView 3.6 or 3.7-cvs older than 30, Sep. 2009.
 
   - Added support for referenceLevel.
 
