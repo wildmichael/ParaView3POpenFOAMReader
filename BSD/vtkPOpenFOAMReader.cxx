@@ -332,7 +332,8 @@ int vtkPOpenFOAMReader::RequestData(vtkInformation *request,
     return ret;
     }
 
-  if (this->Superclass::Readers->GetNumberOfItems() > 0)
+  const int nReaders = this->Superclass::Readers->GetNumberOfItems();
+  if (nReaders > 0)
     {
     int nSteps = 0;
     double *requestedTimeValues = NULL;
@@ -347,7 +348,8 @@ int vtkPOpenFOAMReader::RequestData(vtkInformation *request,
         }
       }
 
-    vtkAppendCompositeDataLeaves *append = vtkAppendCompositeDataLeaves::New();
+    vtkAppendCompositeDataLeaves *append = (nReaders > 1
+        ? vtkAppendCompositeDataLeaves::New() : NULL);
     // append->AppendFieldDataOn();
 
     vtkNewOpenFOAMReader *reader;
@@ -365,7 +367,7 @@ int vtkPOpenFOAMReader::RequestData(vtkInformation *request,
         {
         reader->Modified();
         }
-      if (reader->MakeMetaDataAtTimeStep(false))
+      if ((ret = reader->MakeMetaDataAtTimeStep(false)) && nReaders > 1)
         {
         append->AddInputConnection(reader->GetOutputPort());
         }
@@ -373,19 +375,38 @@ int vtkPOpenFOAMReader::RequestData(vtkInformation *request,
 
     this->GatherMetaData();
 
-    if (append->GetInput() == NULL)
+    if (nReaders == 1)
       {
-      output->Initialize();
-      ret = 0;
+      if(ret)
+        {
+        reader = vtkNewOpenFOAMReader::SafeDownCast(
+            this->Superclass::Readers->GetItemAsObject(0));
+        // reader->RequestInformation() and RequestData() are called
+        // for all reader instances without setting UPDATE_TIME_STEPS.
+        // reader->GetExecutive()->Update() is used because
+        // reader->Update() doesn't return a value.
+        ret = reader->GetExecutive()->Update();
+        output->ShallowCopy(reader->GetOutput());
+        }
       }
     else
       {
-      // reader->RequestInformation() and RequestData() are called
-      // for all reader instances without setting UPDATE_TIME_STEPS
-      append->Update();
-      output->ShallowCopy(append->GetOutput());
+      if (append->GetInput() != NULL)
+        {
+        // reader->RequestInformation() and RequestData() are called
+        // for all reader instances without setting UPDATE_TIME_STEPS.
+        // reader->GetExecutive()->Update() is used because
+        // reader->Update() doesn't return a value.
+        ret = append->GetExecutive()->Update();
+        output->ShallowCopy(append->GetOutput());
+        }
+      append->Delete();
       }
-    append->Delete();
+
+    if(!ret)
+      {
+      output->Initialize();
+      }
     }
   else
     {

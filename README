@@ -321,6 +321,8 @@ OpenCFD Limited.
 
   - Added support for referenceLevel.
 
+  - Variable expansion no longer matches with regex, along with a
+    change in 1.6.x on 22 Sep 2009.
 
 7. To do
 ========
