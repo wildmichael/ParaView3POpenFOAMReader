@@ -319,7 +319,10 @@ OpenCFD Limited.
 ===============================================
 
   - Fixed deadlock when Filters->D3 is directly applied right after
-    the reader output.
+    the reader output. You may still experience lockup when using D3
+    due to a bug in ParaView
+    (http://paraview.org/Bug/view.php?id=9626) which has been fixed in
+    ParaView 3.7-cvs since 30, Sep. 2009.
 
   - Added support for referenceLevel.
 
