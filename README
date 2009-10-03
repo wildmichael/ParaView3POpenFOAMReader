@@ -324,6 +324,9 @@ OpenCFD Limited.
   - Variable expansion no longer matches with regex, along with a
     change in 1.6.x on 22 Sep 2009.
 
+  - Skip appnding datasets when possible (performance improvement).
+
+
 7. To do
 ========
 
