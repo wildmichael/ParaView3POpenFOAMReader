@@ -29,6 +29,7 @@ class QLineEdit;
 class QTimer;
 class QToolButton;
 
+class pqPipelineSource;
 class vtkSMSourceProxy;
 
 class
@@ -52,10 +53,13 @@ protected slots:
 
 private:
   vtkSMSourceProxy *Sp;
+  pqPipelineSource *Ps;
 
   QLineEdit *IntEdit;
   QTimer *Timer;
   QToolButton *Rescale;
+
+  void rescaleAndRender();
 };
 
 #endif
