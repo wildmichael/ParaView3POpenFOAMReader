@@ -6,11 +6,20 @@ configuring  with CMake  in order  for compiler  optimization  to work
 unless you have a specific intention for choosing other options.
 
 
-Install as a plugin
-===================
+Install as an out-of-source plugin
+==================================
 
-The plugin can be compiled and installed in a usual manner as a
-ParaView plugin. Refer to The ParaView Guide.
+The plugin can be compiled and installed in a usual manner as an
+out-of-source ParaView plugin. Refer to The ParaView Guide.
+
+
+Install as an in-source plugin
+==============================
+
+The plugin can be compiled and installed in a usual manner as an
+in-source ParaView plugin. Copy the source directory to
+ParaView3/Plugins and add a paraview_build_optional_plugin() line to
+ParaView3/Plugins/CMakeLists.txt like other plugins.
 
 
 Install by patching the ParaView sources

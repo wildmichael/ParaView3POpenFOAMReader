@@ -38,15 +38,15 @@ OpenCFD Limited.
 2. Installation
 ===============
 
-  The reader can be installed as either plugins or a builtin
-  reader. Unlike the previous versions of the reader, if one chooses
-  to install the reader as plugins the main ParaView sources no longer
-  have to be patched. Thus in general installing as plugins is
-  recommended.
+  The reader can be installed as either one of out-of-source plugins,
+  in-source plugins or a builtin reader. Unlike the past versions of
+  the reader, if one chooses to install the reader as out-of-source
+  plugins the main ParaView sources no longer have to be patched. Thus
+  in general installing as out-of-source plugins is recommended.
 
-  On the other hand, installing as a builtin reader is meant for Linux
-  package maintainers who intend to distribute their own versions of
-  ParaView sources and binaries.
+  On the other hand, installing as in-source plugins and as a builtin
+  reader is mainly meant for Linux package maintainers who intend to
+  distribute their own versions of ParaView sources and binaries.
 
  2.1 Prerequisites
  -----------------
@@ -72,8 +72,8 @@ OpenCFD Limited.
     Windows, building the reader with Visual Studio 2008 SP1 or later
     is strongly recommended.
 
- 2.2 Install as plugins (Linux and OS X)
- ---------------------------------------
+ 2.2 Install as out-of-source plugins (Linux and OS X)
+ -----------------------------------------------------
 
   2.2.1 Building and installing ParaView with parallelization support
 
@@ -153,12 +153,12 @@ OpenCFD Limited.
   2.2.3 Building and installing only the BSDed plugin
 
   If one would not like the GPLed plugin to be installed, point CMake
-  to the BSD subdirectory of the reader source tree when configuring
+  to the BSD/ subdirectory of the reader source tree when configuring
   the plugin with CMake. The remaining steps are identical to the
   previous section.
 
- 2.3 Install as plugins (Windows)
- ---------------------------------------
+ 2.3 Install as out-of-source plugins (Windows)
+ ----------------------------------------------
 
   The overall installation steps are identical to those for Linux and
   OS X except that one would probably use cmake-gui instead of ccmake
@@ -169,7 +169,21 @@ OpenCFD Limited.
   Studio 2008 SP1 or later is strongly recommended. Building under
   MinGW has not been tested.
 
- 2.4 Install as a builtin reader
+ 2.4 Install as in-source plugins
+ --------------------------------
+
+ Copy the reader source tree to ParaView3/Plugins and add the
+ following to ParaView3/Plugins/CMakeLists.txt:
+
+   paraview_build_optional_plugin(POpenFOAMReader "Parallel OpenFOAM Reader"
+       <subdirectory> ON)
+
+ where <subdirectory> is either the top directory of the reader source
+ tree or the BSD/ subdirectory of the reader source tree if one only
+ wants the BSDed plugin. After that, build ParaView following Section
+ 2.2.1.
+
+ 2.5 Install as a builtin reader
  -------------------------------
 
   Follow the "Install by patching the ParaView sources" section of
@@ -325,6 +339,8 @@ OpenCFD Limited.
     change in 1.6.x on 22 Sep 2009.
 
   - Skip appnding datasets when possible (performance improvement).
+
+  - Added support for building as in-source plugins.
 
 
 7. To do

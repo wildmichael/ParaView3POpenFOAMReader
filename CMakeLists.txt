@@ -14,31 +14,41 @@ SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS TRUE)
 
 # Find a ParaView build first in order to get its configuration
 
-FIND_PACKAGE(ParaView REQUIRED)
-
-# Set default installation directory
-
-IF(PARAVIEW_LIBRARY_DIRS)
-  IF(CMAKE_INSTALL_PREFIX STREQUAL "/usr/local"
-      OR CMAKE_INSTALL_PREFIX STREQUAL "C:/Program Files/Project")
-    IF(APPLE)
-      SET(CMAKE_INSTALL_PREFIX "${PARAVIEW_LIBRARY_DIRS}/Plugins")
-    ELSEIF(DEFINED CMAKE_BUILD_TYPE)
-      SET(CMAKE_INSTALL_PREFIX "${PARAVIEW_LIBRARY_DIRS}/plugins")
-    ELSE()
-      SET(CMAKE_INSTALL_PREFIX "${PARAVIEW_LIBRARY_DIRS}/Release/plugins")
-    ENDIF()
-    SET(CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}" CACHE PATH
-      "Install path prefix, prepended onto install directories." FORCE)
-  ENDIF()
+IF(ParaView_SOURCE_DIR)
+  SET(INSOURCE_PLUGIN TRUE)
+ELSE()
+  SET(INSOURCE_PLUGIN FALSE)
+  FIND_PACKAGE(ParaView REQUIRED)
 ENDIF()
 
-# Set default build type to Release if Makefile-based build system is used
+IF(NOT INSOURCE_PLUGIN)
 
-IF(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
-  SET(CMAKE_BUILD_TYPE Release CACHE STRING
-    "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
-    FORCE)
+  # Set default installation directory
+
+  IF(PARAVIEW_LIBRARY_DIRS)
+    IF(CMAKE_INSTALL_PREFIX STREQUAL "/usr/local"
+        OR CMAKE_INSTALL_PREFIX STREQUAL "C:/Program Files/Project")
+      IF(APPLE)
+        SET(CMAKE_INSTALL_PREFIX "${PARAVIEW_LIBRARY_DIRS}/Plugins")
+      ELSEIF(DEFINED CMAKE_BUILD_TYPE)
+        SET(CMAKE_INSTALL_PREFIX "${PARAVIEW_LIBRARY_DIRS}/plugins")
+      ELSE()
+        SET(CMAKE_INSTALL_PREFIX "${PARAVIEW_LIBRARY_DIRS}/Release/plugins")
+      ENDIF()
+      SET(CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}" CACHE PATH
+        "Install path prefix, prepended onto install directories." FORCE)
+    ENDIF()
+  ENDIF()
+
+
+  # Set default build type to Release if Makefile-based build system is used
+
+  IF(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
+    SET(CMAKE_BUILD_TYPE Release CACHE STRING
+      "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+      FORCE)
+  ENDIF()
+
 ENDIF()
 
 ADD_SUBDIRECTORY(BSD)
