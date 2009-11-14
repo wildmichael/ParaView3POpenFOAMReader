@@ -169,6 +169,12 @@ OpenCFD Limited.
   Studio 2008 SP1 or later is strongly recommended. Building under
   MinGW has not been tested.
 
+  [Tip] One might want to take care about the manifest file of the
+  Visual Studio 2008 SP1 runtime DLLs if the binary is intended to be
+  deployed without requiring to install redistributable runtime DLLs
+  separately
+  (http://www.paraview.org/pipermail/paraview/2009-March/011500.html).
+
  2.4 Install as in-source plugins
  --------------------------------
 
