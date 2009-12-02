@@ -273,6 +273,8 @@
     <Property name="UiInterval" show="0"/>
     <Property name="UiRescale" show="0"/>
     <Property name="UiWatch" show="0"/>
+    <ReaderFactory extensions="foam"
+        file_description="OpenFOAM Files" />
   </Hints>
 
 </SourceProxy>

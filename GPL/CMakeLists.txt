@@ -78,7 +78,7 @@ IF(PARAVIEW_BUILD_QT_GUI)
       POpenFOAMPanelPlugin "1.0"
       REQUIRED_ON_CLIENT
       GUI_INTERFACES ${IFACES}
-      SOURCES pqPOpenFOAMPanel.cxx
+      GUI_SOURCES pqPOpenFOAMPanel.cxx
         ${MOC_SRCS} ${RCS_SRCS} ${IFACE_SRCS}
       )
   ELSE()
