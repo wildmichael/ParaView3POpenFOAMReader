@@ -332,22 +332,22 @@ int vtkPOpenFOAMReader::RequestData(vtkInformation *request,
     return ret;
     }
 
+  int nSteps = 0;
+  double *requestedTimeValues = NULL;
+  if (outInfo->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()))
+    {
+    requestedTimeValues
+      = outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS());
+    nSteps = outInfo->Length(vtkStreamingDemandDrivenPipeline::TIME_STEPS());
+    if (nSteps > 0)
+      {
+      outInfo->Set(vtkDataObject::DATA_TIME_STEPS(), requestedTimeValues, 1);
+      }
+    }
+
   const int nReaders = this->Superclass::Readers->GetNumberOfItems();
   if (nReaders > 0)
     {
-    int nSteps = 0;
-    double *requestedTimeValues = NULL;
-    if (outInfo->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()))
-      {
-      requestedTimeValues
-          = outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS());
-      nSteps = outInfo->Length(vtkStreamingDemandDrivenPipeline::TIME_STEPS());
-      if (nSteps > 0)
-        {
-        outInfo->Set(vtkDataObject::DATA_TIME_STEPS(), requestedTimeValues, 1);
-        }
-      }
-
     vtkAppendCompositeDataLeaves *append = (nReaders > 1
         ? vtkAppendCompositeDataLeaves::New() : NULL);
     // append->AppendFieldDataOn();
