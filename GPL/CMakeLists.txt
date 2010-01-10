@@ -93,12 +93,12 @@ IF(PARAVIEW_BUILD_QT_GUI)
   # Set installation destination
 
   IF(NOT INSOURCE_PLUGIN)
-    IF(WIN32)
-      INSTALL(TARGETS POpenFOAMPanelPlugin RUNTIME
-        DESTINATION "${CMAKE_INSTALL_PREFIX}")
-    ELSE()
-      INSTALL(TARGETS POpenFOAMPanelPlugin LIBRARY
-        DESTINATION "${CMAKE_INSTALL_PREFIX}")
-    ENDIF()
+    # ParaView 3.6.2 has been modified after release so that plugins
+    # are built without manifests if MSVC is used. With the
+    # modification there seems to be no way to tell exactly whether
+    # plugins are built as SHARED or MODULE so there seems to be no
+    # way to tell whether RUNTIME or LIBRARY target should be
+    # specified either.
+    INSTALL(TARGETS POpenFOAMPanelPlugin DESTINATION "${CMAKE_INSTALL_PREFIX}")
   ENDIF()
 ENDIF()
