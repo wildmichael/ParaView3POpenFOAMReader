@@ -74,12 +74,16 @@ vtkPOpenFOAMReader::~vtkPOpenFOAMReader()
 void vtkPOpenFOAMReader::PrintSelf(ostream &os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
+  os << indent << "Controller: " << this->Controller << endl;
   os << indent << "Case Type: " << this->CaseType << endl;
   os << indent << "MTimeOld: " << this->MTimeOld << endl;
   os << indent << "Maximum Number of Pieces: " << this->MaximumNumberOfPieces
       << endl;
   os << indent << "Number of Processes: " << this->NumProcesses << endl;
   os << indent << "Process Id: " << this->ProcessId << endl;
+  os << indent << "Ui Interval: " << this->UiInterval;
+  os << indent << "Ui Rescale: " << this->UiRescale;
+  os << indent << "Ui Watch: " << this->UiWatch;
 }
 
 //-----------------------------------------------------------------------------

@@ -290,13 +290,13 @@ protected:
 
   // preserved old information
   vtkStdString *FileNameOld;
-  int ListTimeStepsByControlDictOld;
   int CreateCellToPointOld;
   int DecomposePolyhedraOld;
   int PositionsIsIn13FormatOld;
   int IsSinglePrecisionBinaryOld;
-  int AddDimensionsToArrayNamesOld;
   int ReadZonesOld;
+  int ListTimeStepsByControlDictOld;
+  int AddDimensionsToArrayNamesOld;
 
   // paths to Lagrangians
   vtkStringArray *LagrangianPaths;

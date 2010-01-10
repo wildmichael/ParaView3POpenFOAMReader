@@ -8929,6 +8929,9 @@ void vtkNewOpenFOAMReader::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "AddDimensionsToArrayNames: "
       << this->AddDimensionsToArrayNames << endl;
 
+  os << indent << "Case Path: \n";
+  this->CasePath->PrintSelf(os, indent.GetNextIndent());
+
   this->Readers->InitTraversal();
   vtkObject *reader;
   while ((reader = this->Readers->GetNextItemAsObject()) != NULL)
@@ -8937,6 +8940,48 @@ void vtkNewOpenFOAMReader::PrintSelf(ostream& os, vtkIndent indent)
     reader->PrintSelf(os, indent.GetNextIndent());
     }
 
+  os << indent << "Patch Data Array Selection: \n";
+  this->PatchDataArraySelection->PrintSelf(os, indent.GetNextIndent());
+  os << indent << "Cell Data Array Selection: \n";
+  this->CellDataArraySelection->PrintSelf(os, indent.GetNextIndent());
+  os << indent << "Point Data Array Selection: \n";
+  this->PointDataArraySelection->PrintSelf(os, indent.GetNextIndent());
+  os << indent << "Lagrangian Data Array Selection: \n";
+  this->LagrangianDataArraySelection->PrintSelf(os, indent.GetNextIndent());
+
+  os << indent << "Patch Selection MTime Old: "
+    << this->PatchSelectionMTimeOld << endl;
+  os << indent << "Cell Selection MTime Old: "
+    << this->CellSelectionMTimeOld << endl;
+  os << indent << "Point Selection MTime Old: "
+    << this->PointSelectionMTimeOld << endl;
+  os << indent << "Lagrangian Selection MTime Old: "
+    << this->LagrangianSelectionMTimeOld << endl;
+
+  os << indent << "FileNameOld: " << (this->FileNameOld ? *this->FileNameOld :
+      vtkStdString()) << endl;
+  os << indent << "CreateCellToPointOld: " << this->CreateCellToPointOld
+      << endl;
+  os << indent << "DecomposePolyhedraOld: " << this->DecomposePolyhedraOld
+      << endl;
+  os << indent << "PositionsIsIn13FormatOld: " << this->PositionsIsIn13FormatOld
+      << endl;
+  os << indent << "IsSinglePrecisionBinaryOld: "
+      << this->IsSinglePrecisionBinaryOld << endl;
+  os << indent << "ReadZonesOld: " << this->ReadZonesOld << endl;
+  os << indent << "ListTimeStepsByControlDictOld: "
+      << this->ListTimeStepsByControlDictOld << endl;
+  os << indent << "AddDimensionsToArrayNamesOld: "
+      << this->AddDimensionsToArrayNamesOld << endl;
+
+  os << indent << "Lagrangian Paths: \n";
+  this->LagrangianPaths->PrintSelf(os, indent.GetNextIndent());
+
+  os << indent << "Number Of Readers: " << this->NumberOfReaders << endl;
+  os << indent << "Current Reader Index: " << this->CurrentReaderIndex << endl;
+
+  os << indent << "Parent reader instance: "
+      << static_cast<void *>(this->Parent) << endl;
   return;
 }
 
