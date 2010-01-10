@@ -22,15 +22,16 @@ ParaView3/Plugins and add a paraview_build_optional_plugin() line to
 ParaView3/Plugins/CMakeLists.txt like other plugins.
 
 
-Install by patching the ParaView sources
-========================================
+Install as a builtin reader by patching the ParaView sources
+============================================================
 
-Currently ParaView 3.6.1 is supported.
+Currently ParaView 3.6.2 is supported.
 
 1. Copy vtkNewOpenFOAMReader.{cxx,h} to ParaView3/VTK/IO
-2. Apply 3.6.1/CMakeLists_IO.txt.diff to ParaView3/VTK/IO/CMakeLists.txt
-3. Copy vtkPOpenFOAMReader.{cxx,h} to ParaView3/VTK/Hybrid
-4. Apply 3.6.1/CMakeLists_Hybrid.txt.diff to ParaView3/VTK/Hybrid/CMakeLists.txt
+2. Apply 3.6.2/CMakeLists_IO.txt.diff to ParaView3/VTK/IO/CMakeLists.txt
+3. Copy vtkPOpenFOAMReader.{cxx,h} to ParaView3/VTK/Parallel
+4. Apply 3.6.2/CMakeLists_Parallel.txt.diff to
+   ParaView3/VTK/Parallel/CMakeLists.txt
 5. Copy CMake/FindRegex.cmake to ParaView3/VTK/CMake
 6. Replace the section enclosed by
      <!-- Beginning of FOAM Reader -->

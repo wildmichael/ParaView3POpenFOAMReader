@@ -20,14 +20,14 @@ ParaView3/Plugins and add a paraview_build_optional_plugin() line to
 ParaView3/Plugins/CMakeLists.txt like other plugins.
 
 
-Install by patching the ParaView sources
-========================================
+Install as a builtin reader by patching the ParaView sources
+============================================================
 
-Currently ParaView 3.6.1 is supported.
+Currently ParaView 3.6.2 is supported.
 
 1. Copy pqPOPenFOAMPanel.{cxx,h} to ParaView3/Qt/Components
-2. Apply 3.6.1/CMakeLists.txt.diff to ParaView3/Qt/Components/CMakeLists.txt
-3. Apply 3.6.1/pqObjectInspectorWidget.cxx.diff to
+2. Apply 3.6.2/CMakeLists.txt.diff to ParaView3/Qt/Components/CMakeLists.txt
+3. Apply 3.6.2/pqObjectInspectorWidget.cxx.diff to
    ParaView3/Qt/Components/pqObjectInspectorWidget.cxx
 
 

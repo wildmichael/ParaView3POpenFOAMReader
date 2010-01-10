@@ -355,6 +355,11 @@ OpenCFD Limited.
 
   - Added support for building as in-source plugins.
 
+  - Dropped builtin support for ParaView 3.6.1 (but building as
+    plugins should still work).
+
+  - Added ParaView 3.6.2 support.
+
 
 7. To do
 ========

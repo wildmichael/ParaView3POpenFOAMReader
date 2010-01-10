@@ -34,7 +34,7 @@ class vtkMultiProcessController;
 
 class
 #if !defined(POpenFOAMReaderPlugin_EXPORTS)
-VTK_HYBRID_EXPORT
+VTK_PARALLEL_EXPORT
 #endif
 vtkPOpenFOAMReader : public vtkNewOpenFOAMReader
 {

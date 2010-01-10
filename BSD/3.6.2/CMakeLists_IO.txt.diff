@@ -1,5 +1,5 @@
---- CMakeLists.txt.orig	2009-03-18 03:45:22.000000000 +0900
-+++ CMakeLists.txt	2009-08-29 21:16:15.000000000 +0900
+--- CMakeLists.txt.orig	2009-07-30 03:21:57 +0900
++++ CMakeLists.txt	2010-01-10 18:40:50 +0900
 @@ -79,6 +79,7 @@
  vtkMoleculeReaderBase.cxx
  vtkNetCDFCOARDSReader.cxx
@@ -8,7 +8,7 @@
  vtkOBJReader.cxx
  vtkOutputStream.cxx
  vtkOpenFOAMReader.cxx
-@@ -344,6 +345,14 @@
+@@ -346,6 +347,14 @@
  ENDIF ( VTK_USE_ODBC AND ODBC_FOUND )
  
  #-----------------------------------------------------------------------------
