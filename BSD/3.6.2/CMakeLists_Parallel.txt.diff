@@ -4,7 +4,7 @@
  vtkPKdTree.cxx
  vtkPLinearExtrusionFilter.cxx
  vtkPOPReader.cxx
-+vtkPOpenFOAMReader.cxx
++vtkNewPOpenFOAMReader.cxx
  vtkPOutlineCornerFilter.cxx
  vtkPOutlineFilter.cxx
  vtkPPolyDataNormals.cxx

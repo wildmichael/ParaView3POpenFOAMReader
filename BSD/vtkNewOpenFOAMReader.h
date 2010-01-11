@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Visualization Toolkit
-  Module:    $RCSfile: vtkOpenFOAMReader.h,v $
+  Module:    $RCSfile: vtkNewOpenFOAMReader.h,v $
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -32,7 +32,7 @@
 // builtin cell-to-point filter, pointField support, polyhedron
 // decomposition support, OF 1.5 extended format support, multiregion
 // support, old mesh format support, parallelization support for
-// decomposed cases in conjunction with vtkPOpenFOAMReader, et. al. by
+// decomposed cases in conjunction with vtkNewPOpenFOAMReader, et. al. by
 // Takuya Oshima of Niigata University, Japan (oshima@eng.niigata-u.ac.jp).
 
 #ifndef __vtkNewOpenFOAMReader_h
@@ -47,7 +47,7 @@ class vtkDoubleArray;
 class vtkStdString;
 class vtkStringArray;
 
-class vtkOpenFOAMReaderPrivate;
+class vtkNewOpenFOAMReaderPrivate;
 
 
 class
@@ -241,7 +241,7 @@ public:
   int MakeMetaDataAtTimeStep(const bool);
 
   //BTX
-  friend class vtkOpenFOAMReaderPrivate;
+  friend class vtkNewOpenFOAMReaderPrivate;
   //ETX
 
 protected:

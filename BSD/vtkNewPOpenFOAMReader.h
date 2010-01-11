@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Visualization Toolkit
-  Module:    $RCSfile: vtkPOpenFOAMReader.h,v $
+  Module:    $RCSfile: vtkNewPOpenFOAMReader.h,v $
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -12,9 +12,9 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkPOpenFOAMReader - reads a decomposed dataset in OpenFOAM format
+// .NAME vtkNewPOpenFOAMReader - reads a decomposed dataset in OpenFOAM format
 // .SECTION Description
-// vtkPOpenFOAMReader creates a multiblock dataset. It reads
+// vtkNewPOpenFOAMReader creates a multiblock dataset. It reads
 // parallel-decomposed mesh information and time dependent data.  The
 // polyMesh folders contain mesh information. The time folders contain
 // transient data for the cells. Each folder can contain any number of
@@ -24,8 +24,8 @@
 // This class was developed by Takuya Oshima at Niigata University,
 // Japan (oshima@eng.niigata-u.ac.jp).
 
-#ifndef __vtkPOpenFOAMReader_h
-#define __vtkPOpenFOAMReader_h
+#ifndef __vtkNewPOpenFOAMReader_h
+#define __vtkNewPOpenFOAMReader_h
 
 #include "vtkNewOpenFOAMReader.h"
 
@@ -36,15 +36,15 @@ class
 #if !defined(POpenFOAMReaderPlugin_EXPORTS)
 VTK_PARALLEL_EXPORT
 #endif
-vtkPOpenFOAMReader : public vtkNewOpenFOAMReader
+vtkNewPOpenFOAMReader : public vtkNewOpenFOAMReader
 {
 public:
   //BTX
   enum caseType { DECOMPOSED_CASE = 0, RECONSTRUCTED_CASE = 1 };
   //ETX
-  static vtkPOpenFOAMReader *New();
+  static vtkNewPOpenFOAMReader *New();
 
-  vtkTypeRevisionMacro(vtkPOpenFOAMReader, vtkNewOpenFOAMReader);
+  vtkTypeRevisionMacro(vtkNewPOpenFOAMReader, vtkNewOpenFOAMReader);
 
   void PrintSelf(ostream &os, vtkIndent indent);
 
@@ -81,8 +81,8 @@ public:
   vtkBooleanMacro(UiWatch, int);
 
 protected:
-  vtkPOpenFOAMReader();
-  ~vtkPOpenFOAMReader();
+  vtkNewPOpenFOAMReader();
+  ~vtkNewPOpenFOAMReader();
 
   int RequestInformation(vtkInformation *, vtkInformationVector **,
     vtkInformationVector *);
@@ -102,8 +102,8 @@ private:
   int UiRescale;
   int UiWatch;
 
-  vtkPOpenFOAMReader(const vtkPOpenFOAMReader &); // Not implemented.
-  void operator=(const vtkPOpenFOAMReader &); // Not implemented.
+  vtkNewPOpenFOAMReader(const vtkNewPOpenFOAMReader &); // Not implemented.
+  void operator=(const vtkNewPOpenFOAMReader &); // Not implemented.
 
   void GatherMetaData();
   void BroadcastStatus(int &);

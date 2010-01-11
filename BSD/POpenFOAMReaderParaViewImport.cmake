@@ -13,7 +13,7 @@ INCLUDE(${POpenFOAMReader_SOURCE_DIR}/CMake/FindRegex.cmake)
 
 SET(POpenFOAMReader_SRCS 
   ${POpenFOAMReader_SOURCE_DIR}/vtkNewOpenFOAMReader.cxx
-  ${POpenFOAMReader_SOURCE_DIR}/vtkPOpenFOAMReader.cxx
+  ${POpenFOAMReader_SOURCE_DIR}/vtkNewPOpenFOAMReader.cxx
   )
 
 INCLUDE_DIRECTORIES(${POpenFOAMReader_SOURCE_DIR})

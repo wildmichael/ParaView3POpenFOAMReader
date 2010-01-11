@@ -35,7 +35,7 @@
 #     pvFoam
 #
 # Description
-#     ParaView interface script for use with vtkPOpenFOAMReader.
+#     ParaView interface script for use with vtkNewPOpenFOAMReader.
 
 # Adjust as necessary.
 # You might also want to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH.

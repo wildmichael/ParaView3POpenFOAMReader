@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Visualization Toolkit
-  Module:    $RCSfile: vtkPOpenFOAMReader.cxx,v $
+  Module:    $RCSfile: vtkNewPOpenFOAMReader.cxx,v $
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -15,7 +15,7 @@
 // This class was developed by Takuya Oshima at Niigata University,
 // Japan (oshima@eng.niigata-u.ac.jp).
 
-#include "vtkPOpenFOAMReader.h"
+#include "vtkNewPOpenFOAMReader.h"
 
 #include "vtkAppendCompositeDataLeaves.h"
 #include "vtkCharArray.h"
@@ -36,12 +36,12 @@
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkStringArray.h"
 
-vtkCxxRevisionMacro(vtkPOpenFOAMReader, "$Revision: 1.1 $");
-vtkStandardNewMacro(vtkPOpenFOAMReader);
-vtkCxxSetObjectMacro(vtkPOpenFOAMReader, Controller, vtkMultiProcessController);
+vtkCxxRevisionMacro(vtkNewPOpenFOAMReader, "$Revision: 1.1 $");
+vtkStandardNewMacro(vtkNewPOpenFOAMReader);
+vtkCxxSetObjectMacro(vtkNewPOpenFOAMReader, Controller, vtkMultiProcessController);
 
 //-----------------------------------------------------------------------------
-vtkPOpenFOAMReader::vtkPOpenFOAMReader()
+vtkNewPOpenFOAMReader::vtkNewPOpenFOAMReader()
 {
   this->Controller = NULL;
   this->SetController(vtkMultiProcessController::GetGlobalController());
@@ -65,13 +65,13 @@ vtkPOpenFOAMReader::vtkPOpenFOAMReader()
 }
 
 //-----------------------------------------------------------------------------
-vtkPOpenFOAMReader::~vtkPOpenFOAMReader()
+vtkNewPOpenFOAMReader::~vtkNewPOpenFOAMReader()
 {
   this->SetController(NULL);
 }
 
 //-----------------------------------------------------------------------------
-void vtkPOpenFOAMReader::PrintSelf(ostream &os, vtkIndent indent)
+void vtkNewPOpenFOAMReader::PrintSelf(ostream &os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
   os << indent << "Controller: " << this->Controller << endl;
@@ -87,7 +87,7 @@ void vtkPOpenFOAMReader::PrintSelf(ostream &os, vtkIndent indent)
 }
 
 //-----------------------------------------------------------------------------
-void vtkPOpenFOAMReader::SetCaseType(const int t)
+void vtkNewPOpenFOAMReader::SetCaseType(const int t)
 {
   if (this->CaseType != t)
     {
@@ -98,7 +98,7 @@ void vtkPOpenFOAMReader::SetCaseType(const int t)
 }
 
 //-----------------------------------------------------------------------------
-int vtkPOpenFOAMReader::RequestInformation(vtkInformation *request,
+int vtkNewPOpenFOAMReader::RequestInformation(vtkInformation *request,
     vtkInformationVector **inputVector, vtkInformationVector *outputVector)
 {
   if (this->CaseType == RECONSTRUCTED_CASE)
@@ -307,7 +307,7 @@ int vtkPOpenFOAMReader::RequestInformation(vtkInformation *request,
 }
 
 //-----------------------------------------------------------------------------
-int vtkPOpenFOAMReader::RequestData(vtkInformation *request,
+int vtkNewPOpenFOAMReader::RequestData(vtkInformation *request,
     vtkInformationVector **inputVector, vtkInformationVector *outputVector)
 {
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
@@ -433,7 +433,7 @@ int vtkPOpenFOAMReader::RequestData(vtkInformation *request,
 }
 
 //-----------------------------------------------------------------------------
-void vtkPOpenFOAMReader::BroadcastStatus(int &status)
+void vtkNewPOpenFOAMReader::BroadcastStatus(int &status)
 {
   if (this->NumProcesses > 1)
     {
@@ -442,7 +442,7 @@ void vtkPOpenFOAMReader::BroadcastStatus(int &status)
 }
 
 //-----------------------------------------------------------------------------
-void vtkPOpenFOAMReader::GatherMetaData()
+void vtkNewPOpenFOAMReader::GatherMetaData()
 {
   if (this->NumProcesses > 1)
     {
@@ -460,7 +460,7 @@ void vtkPOpenFOAMReader::GatherMetaData()
 //-----------------------------------------------------------------------------
 // Decode and reconstruct the encoded multiblock structure. Helper
 // function for BroadcastStructure().
-int vtkPOpenFOAMReader::ConstructBlocks(vtkMultiBlockDataSet *ds, int *dataTypes,
+int vtkNewPOpenFOAMReader::ConstructBlocks(vtkMultiBlockDataSet *ds, int *dataTypes,
     int leafI)
 {
   ds->SetNumberOfBlocks(dataTypes[leafI]);
@@ -482,7 +482,7 @@ int vtkPOpenFOAMReader::ConstructBlocks(vtkMultiBlockDataSet *ds, int *dataTypes
 // be self-coded because
 // vtkCommunicator::{Send,Receive}MultiBlockDataSet()s in ParaView
 // 3.6.1 are broken (whereas those in 3.7-cvs have been fixed).
-void vtkPOpenFOAMReader::BroadcastStructure(vtkMultiBlockDataSet *ds, const int startProc)
+void vtkNewPOpenFOAMReader::BroadcastStructure(vtkMultiBlockDataSet *ds, const int startProc)
 {
   if (this->NumProcesses <= 1)
     {
@@ -546,7 +546,7 @@ void vtkPOpenFOAMReader::BroadcastStructure(vtkMultiBlockDataSet *ds, const int 
 
 //-----------------------------------------------------------------------------
 // Broadcast a vtkStringArray in process 0 to all processes
-void vtkPOpenFOAMReader::Broadcast(vtkStringArray *sa)
+void vtkNewPOpenFOAMReader::Broadcast(vtkStringArray *sa)
 {
   vtkIdType lengths[2];
   if (this->ProcessId == 0)
@@ -585,7 +585,7 @@ void vtkPOpenFOAMReader::Broadcast(vtkStringArray *sa)
 
 //-----------------------------------------------------------------------------
 // AllGather vtkStringArrays from and to all processes
-void vtkPOpenFOAMReader::AllGather(vtkStringArray *s)
+void vtkNewPOpenFOAMReader::AllGather(vtkStringArray *s)
 {
   vtkIdType length = 0;
   for (int strI = 0; strI < s->GetNumberOfTuples(); strI++)
@@ -628,7 +628,7 @@ void vtkPOpenFOAMReader::AllGather(vtkStringArray *s)
 
 //-----------------------------------------------------------------------------
 // AllGather vtkDataArraySelections from and to all processes
-void vtkPOpenFOAMReader::AllGather(vtkDataArraySelection *s)
+void vtkNewPOpenFOAMReader::AllGather(vtkDataArraySelection *s)
 {
   vtkIdType length = 0;
   for (int strI = 0; strI < s->GetNumberOfArrays(); strI++)

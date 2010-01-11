@@ -55,13 +55,13 @@ IF(PARAVIEW_VERSION VERSION_GREATER "3.6")
     POpenFOAMReaderPlugin "1.0"
     REQUIRED_ON_SERVER
     SERVER_MANAGER_XML POpenFOAMReaderSM.xml
-    SERVER_MANAGER_SOURCES vtkNewOpenFOAMReader.cxx vtkPOpenFOAMReader.cxx
+    SERVER_MANAGER_SOURCES vtkNewOpenFOAMReader.cxx vtkNewPOpenFOAMReader.cxx
     )
 ELSE()
   ADD_PARAVIEW_PLUGIN(
     POpenFOAMReaderPlugin "1.0"
     SERVER_MANAGER_XML POpenFOAMReaderSM.xml
-    SERVER_MANAGER_SOURCES vtkNewOpenFOAMReader.cxx vtkPOpenFOAMReader.cxx
+    SERVER_MANAGER_SOURCES vtkNewOpenFOAMReader.cxx vtkNewPOpenFOAMReader.cxx
     )
 ENDIF()
 

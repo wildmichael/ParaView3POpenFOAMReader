@@ -29,7 +29,7 @@ Currently ParaView 3.6.2 is supported.
 
 1. Copy vtkNewOpenFOAMReader.{cxx,h} to ParaView3/VTK/IO
 2. Apply 3.6.2/CMakeLists_IO.txt.diff to ParaView3/VTK/IO/CMakeLists.txt
-3. Copy vtkPOpenFOAMReader.{cxx,h} to ParaView3/VTK/Parallel
+3. Copy vtkNewPOpenFOAMReader.{cxx,h} to ParaView3/VTK/Parallel
 4. Apply 3.6.2/CMakeLists_Parallel.txt.diff to
    ParaView3/VTK/Parallel/CMakeLists.txt
 5. Copy CMake/FindRegex.cmake to ParaView3/VTK/CMake

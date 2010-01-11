@@ -1,7 +1,7 @@
 <ServerManagerConfiguration>
   <ProxyGroup name="sources">
 <!-- Beginning of Parallel OF Reader -->
-<SourceProxy name="OpenFOAMReader" class="vtkPOpenFOAMReader">
+<SourceProxy name="OpenFOAMReader" class="vtkNewPOpenFOAMReader">
   <StringVectorProperty
     name="FileName"
     command="SetFileName"
