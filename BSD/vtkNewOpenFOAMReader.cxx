@@ -575,6 +575,18 @@ public:
   VTK_TEMPLATE_SPECIALIZE double To<double>() const;
 #endif
 
+  // workaround for SunOS-CC5.6-dbg
+  int ToInt() const
+  {
+    return this->Int;
+  }
+
+  // workaround for SunOS-CC5.6-dbg
+  float ToFloat() const
+  {
+    return this->Type == LABEL ? this->Int : this->Double;
+  }
+
   bool IsWordOrString() const
   {
     return this->Type == WORD || this->Type == STRING;
@@ -3966,7 +3978,9 @@ void vtkNewFoamEntry::Read(vtkNewFoamIOobject& io)
           if (lastValue.Dictionary().GetType() == vtkNewFoamToken::LABEL)
             {
             const int asize = secondLastValue.To<int>();
-            const int value = lastValue.Dictionary().GetToken().To<int>();
+            // not using templated To<int>() for workarounding an error
+            // on SunOS-CC5.6-dbg
+            const int value = lastValue.Dictionary().GetToken().ToInt();
             // delete last two values
             delete this->Superclass::back();
             this->Superclass::pop_back();
@@ -3979,7 +3993,9 @@ void vtkNewFoamEntry::Read(vtkNewFoamIOobject& io)
           else if (lastValue.Dictionary().GetType() == vtkNewFoamToken::SCALAR)
             {
             const int asize = secondLastValue.To<int>();
-            const float value = lastValue.Dictionary().GetToken().To<float>();
+            // not using templated To<float>() for workarounding an error
+            // on SunOS-CC5.6-dbg
+            const float value = lastValue.Dictionary().GetToken().ToFloat();
             // delete last two values
             delete this->Superclass::back();
             this->Superclass::pop_back();
