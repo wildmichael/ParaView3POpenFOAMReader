@@ -32,7 +32,7 @@
 // builtin cell-to-point filter, pointField support, polyhedron
 // decomposition support, OF 1.5 extended format support, multiregion
 // support, old mesh format support, parallelization support for
-// decomposed cases in conjunction with vtkNewPOpenFOAMReader, et. al. by
+// decomposed cases in conjunction with vtkPOpenFOAMReader, et. al. by
 // Takuya Oshima of Niigata University, Japan (oshima@eng.niigata-u.ac.jp).
 
 #ifndef __vtkNewOpenFOAMReader_h
@@ -47,7 +47,11 @@ class vtkDoubleArray;
 class vtkStdString;
 class vtkStringArray;
 
+#if defined(POpenFOAMReaderPlugin_EXPORTS)
 class vtkNewOpenFOAMReaderPrivate;
+#else
+class vtkOpenFOAMReaderPrivate;
+#endif
 
 
 class
