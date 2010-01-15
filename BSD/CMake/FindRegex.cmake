@@ -1,6 +1,6 @@
 #/*=========================================================================
 #
-#    Copyright (c) 2009 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
+#    Copyright (c) 2009-2010 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
 #    All rights reserved.
 #
 #    This software is distributed WITHOUT ANY WARRANTY; without even

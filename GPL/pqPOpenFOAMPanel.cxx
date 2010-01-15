@@ -17,7 +17,7 @@
     <http://www.gnu.org/licenses/>.
 
 =========================================================================*/
-// Copyright (c) 2008-2009 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
+// Copyright (c) 2008-2010 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
 // All rights reserved.
 
 #include "pqPOpenFOAMPanel.h"

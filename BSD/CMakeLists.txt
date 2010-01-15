@@ -1,6 +1,6 @@
 #/*=========================================================================
 #
-#    Copyright (c) 2008-2009 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
+#    Copyright (c) 2008-2010 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
 #    All rights reserved.
 #    See License_v1.2.txt for details.
 #
