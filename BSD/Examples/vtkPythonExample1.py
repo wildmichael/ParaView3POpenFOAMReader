@@ -51,7 +51,7 @@ except AttributeError:
 # 'controlDict.foam', the reader assumes the file is in the system/
 # subdirectory of the intended case directory.
 reader.SetFileName(' ')
-reader.SetCaseType(caseType) # 0/1 =  = Decomposed/Reconstructed case
+reader.SetCaseType(caseType) # 0/1 = Decomposed/Reconstructed case
 reader.SetCreateCellToPoint(0) # 0/1 = Turn off/on point filtered arrays
 
 # Create the geometry filter that converts the multiblock dataset to a
