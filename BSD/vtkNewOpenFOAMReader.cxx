@@ -9225,6 +9225,8 @@ int vtkNewOpenFOAMReader::RequestData(vtkInformation *vtkNotUsed(request), vtkIn
 void vtkNewOpenFOAMReader::SetTimeInformation(vtkInformationVector *outputVector,
     vtkDoubleArray *timeValues)
 {
+  // the length of the time value information array should not be zero
+  // -- otherwise ParaView will crash.
   if (timeValues->GetNumberOfTuples() > 0)
     {
     outputVector->GetInformationObject(0)->Set(vtkStreamingDemandDrivenPipeline::TIME_STEPS(),
@@ -9233,13 +9235,6 @@ void vtkNewOpenFOAMReader::SetTimeInformation(vtkInformationVector *outputVector
     double timeRange[2];
     timeRange[0] = timeValues->GetValue(0);
     timeRange[1] = timeValues->GetValue(timeValues->GetNumberOfTuples() - 1);
-    outputVector->GetInformationObject(0)->Set(vtkStreamingDemandDrivenPipeline::TIME_RANGE(), timeRange, 2);
-    }
-  else
-    {
-    double timeRange[2];
-    timeRange[0] = timeRange[1] = 0.0;
-    outputVector->GetInformationObject(0)->Set(vtkStreamingDemandDrivenPipeline::TIME_STEPS(), timeRange, 0);
     outputVector->GetInformationObject(0)->Set(vtkStreamingDemandDrivenPipeline::TIME_RANGE(), timeRange, 2);
     }
 }
@@ -9297,20 +9292,20 @@ int vtkNewOpenFOAMReader::MakeInformationVector(
     return 0;
     }
 
-  if (masterReader->GetTimeValues()->GetNumberOfTuples() == 0)
-    {
-    vtkErrorMacro(<< "Case " << casePath.c_str()
-        << " contains no timestep data.");
-    masterReader->Delete();
-    return 0;
-    }
-
-  this->Readers->AddItem(masterReader);
-
   if (outputVector != NULL)
     {
     this->SetTimeInformation(outputVector, masterReader->GetTimeValues());
     }
+
+  if (masterReader->GetTimeValues()->GetNumberOfTuples() == 0)
+    {
+    vtkWarningMacro(<< "Case " << casePath.c_str()
+        << " contains no timestep data.");
+    masterReader->Delete();
+    return 1;
+    }
+
+  this->Readers->AddItem(masterReader);
 
   // search subregions under constant subdirectory
   vtkStringArray *regionNames = vtkStringArray::New();

@@ -265,6 +265,7 @@ int vtkNewPOpenFOAMReader::RequestInformation(vtkInformation *request,
 
     if (this->ProcessId == 0 && procNames->GetNumberOfTuples() == 0)
       {
+      vtkWarningMacro(<< " Case " << this->CasePath->GetPointer(0) << " contains no processor subdirectory.");
       timeValues->Delete();
       }
 
