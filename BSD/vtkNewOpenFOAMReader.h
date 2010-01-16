@@ -40,19 +40,16 @@
 
 #include "vtkMultiBlockDataSetAlgorithm.h"
 
+#if defined(POpenFOAMReaderPlugin_EXPORTS)
+#define vtkOpenFOAMReaderPrivate vtkNewOpenFOAMReaderPrivate
+#endif
+
 class vtkCollection;
 class vtkCharArray;
 class vtkDataArraySelection;
 class vtkDoubleArray;
 class vtkStdString;
 class vtkStringArray;
-
-#if defined(POpenFOAMReaderPlugin_EXPORTS)
-class vtkNewOpenFOAMReaderPrivate;
-#else
-class vtkOpenFOAMReaderPrivate;
-#endif
-
 
 class
 #if !defined(POpenFOAMReaderPlugin_EXPORTS)
@@ -234,21 +231,25 @@ public:
   vtkGetMacro(ReadZones, int);
   vtkBooleanMacro(ReadZones, int);
 
+  // Description:
+  // Set to indicate internal information (metadata) should be
+  // refreshed next time RequestInformation() is executed.
   void SetRefresh() { this->Refresh = true; this->Modified(); }
 
-  void SetParent(vtkNewOpenFOAMReader *parent) { this->Parent = parent; }
-  //BTX
-  int MakeInformationVector(vtkInformationVector *, const vtkStdString &);
-  //ETX
-  bool SetTimeValue(const double);
-  vtkDoubleArray *GetTimeValues();
-  int MakeMetaDataAtTimeStep(const bool);
-
-  //BTX
-  friend class vtkNewOpenFOAMReaderPrivate;
-  //ETX
-
 protected:
+  vtkNewOpenFOAMReader();
+  ~vtkNewOpenFOAMReader();
+  int RequestInformation(vtkInformation *, vtkInformationVector **,
+    vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **,
+    vtkInformationVector *);
+
+  //BTX
+  friend class vtkOpenFOAMReaderPrivate;
+  friend class vtkNewPOpenFOAMReader;
+  //ETX
+
+private:
   // refresh flag
   bool Refresh;
 
@@ -310,21 +311,6 @@ protected:
   // index of the active reader
   int CurrentReaderIndex;
 
-  vtkNewOpenFOAMReader();
-  ~vtkNewOpenFOAMReader();
-  int RequestInformation(vtkInformation *, vtkInformationVector **,
-    vtkInformationVector *);
-  int RequestData(vtkInformation *, vtkInformationVector **,
-    vtkInformationVector *);
-
-  void CreateCasePath(vtkStdString &, vtkStdString &);
-  void SetTimeInformation(vtkInformationVector *, vtkDoubleArray *);
-  void GetRegions(vtkStringArray *, const vtkStdString &);
-  void CreateCharArrayFromString(vtkCharArray *, const char *, vtkStdString &);
-  void UpdateStatus();
-  void UpdateProgress(double);
-
-private:
   vtkNewOpenFOAMReader *Parent;
 
   vtkNewOpenFOAMReader(const vtkNewOpenFOAMReader&);  // Not implemented.
@@ -337,7 +323,18 @@ private:
   void DisableAllSelectionArrays(vtkDataArraySelection *);
   void EnableAllSelectionArrays(vtkDataArraySelection *);
 
+  void SetParent(vtkNewOpenFOAMReader *parent) { this->Parent = parent; }
+  vtkDoubleArray *GetTimeValues();
+  bool SetTimeValue(const double);
   void AddSelectionNames(vtkDataArraySelection *, vtkStringArray *);
+  int MakeInformationVector(vtkInformationVector *, const vtkStdString &);
+  int MakeMetaDataAtTimeStep(const bool);
+  void CreateCasePath(vtkStdString &, vtkStdString &);
+  void SetTimeInformation(vtkInformationVector *, vtkDoubleArray *);
+  void GetRegions(vtkStringArray *, const vtkStdString &);
+  void CreateCharArrayFromString(vtkCharArray *, const char *, vtkStdString &);
+  void UpdateStatus();
+  void UpdateProgress(double);
 };
 
 #endif

@@ -130,7 +130,6 @@ uLong ZEXPORT crc32(uLong, const Bytef *, uInt)
 #define vtkFoamEntryValue vtkNewFoamEntryValue
 #define vtkFoamEntry vtkNewFoamEntry
 #define vtkFoamDict vtkNewFoamDict
-#define vtkOpenFOAMReaderPrivate vtkNewOpenFOAMReaderPrivate
 #endif
 
 vtkCxxRevisionMacro(vtkNewOpenFOAMReader, "$Revision: 1.16 $");
