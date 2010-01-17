@@ -12,7 +12,7 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkNewPOpenFOAMReader - reads a decomposed dataset in OpenFOAM format
+// .NAME vtkNewPOpenFOAMReader - reads a decomposed dataset in OpenFOAM(R) format
 // .SECTION Description
 // vtkNewPOpenFOAMReader creates a multiblock dataset. It reads
 // parallel-decomposed mesh information and time dependent data.  The
@@ -23,6 +23,12 @@
 // .SECTION Thanks
 // This class was developed by Takuya Oshima at Niigata University,
 // Japan (oshima@eng.niigata-u.ac.jp).
+// OPENFOAM(R) is a registered trade mark of OpenCFD Limited, the
+// producer of the OpenFOAM software and owner of the OPENFOAM(R) and
+// OpenCFD(R) trade marks. This code is not approved or endorsed by
+// OpenCFD Limited.
+
+
 
 #ifndef __vtkNewPOpenFOAMReader_h
 #define __vtkNewPOpenFOAMReader_h

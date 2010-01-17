@@ -16,19 +16,25 @@
 // Technology Laboratory who developed this class.
 // Please address all comments to Terry Jordan (terry.jordan@sa.netl.doe.gov)
 //
-// Token-based FoamFile format lexer/parser,
-// performance/stability/compatibility enhancements, gzipped file
-// support, lagrangian field support, variable timestep support,
-// builtin cell-to-point filter, pointField support, polyhedron
-// decomposition support, OF 1.5 extended format support, multiregion
-// support, old mesh format support, parallelization support for
-// decomposed cases in conjunction with vtkPOpenFOAMReader, et. al. by
-// Takuya Oshima of Niigata University, Japan (oshima@eng.niigata-u.ac.jp)
+// Token-based FoamFile format lexer / parser, performance / stability
+// / compatibility enhancements, gzipped file support, lagrangian
+// field support, variable timestep support, builtin cell-to-point
+// filter, pointField support, polyhedron decomposition support, OF
+// 1.5 extended format support, multiregion support, old mesh format
+// support, parallelization support for decomposed cases in
+// conjunction with vtkPOpenFOAMReader, et. al. by Takuya Oshima of
+// Niigata University, Japan (oshima@eng.niigata-u.ac.jp)
 //
 // * GUI Based selection of mesh regions and fields available in the case
 // * Minor bug fixes / Strict memory allocation checks
 // * Minor performance enhancements
 // by Philippose Rajan (sarith@rocketmail.com)
+//
+// OPENFOAM(R) is a registered trade mark of OpenCFD Limited, the
+// producer of the OpenFOAM software and owner of the OPENFOAM(R) and
+// OpenCFD(R) trade marks. This code is not approved or endorsed by
+// OpenCFD Limited.
+
 
 // Hijack the CRC routine of zlib to omit CRC check for gzipped files
 // (on OSes other than Windows where the mechanism doesn't work due

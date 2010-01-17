@@ -19,6 +19,10 @@
 =========================================================================*/
 // Copyright (c) 2008-2010 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
 // All rights reserved.
+// OPENFOAM(R) is a registered trade mark of OpenCFD Limited, the
+// producer of the OpenFOAM software and owner of the OPENFOAM(R) and
+// OpenCFD(R) trade marks. This code is not approved or endorsed by
+// OpenCFD Limited.
 
 #include "pqPOpenFOAMPanel.h"
 

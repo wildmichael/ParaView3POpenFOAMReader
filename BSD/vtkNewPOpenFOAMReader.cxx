@@ -14,6 +14,10 @@
 =========================================================================*/
 // This class was developed by Takuya Oshima at Niigata University,
 // Japan (oshima@eng.niigata-u.ac.jp).
+// OPENFOAM(R) is a registered trade mark of OpenCFD Limited, the
+// producer of the OpenFOAM software and owner of the OPENFOAM(R) and
+// OpenCFD(R) trade marks. This code is not approved or endorsed by
+// OpenCFD Limited.
 
 #include "vtkNewPOpenFOAMReader.h"
 
