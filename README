@@ -360,6 +360,9 @@ OpenCFD Limited.
 
   - Added ParaView 3.6.2 support.
 
+  - Now that the reader is in ParaView 3.7-cvs and VTK 5.5-cvs, class
+    names has been changed in order to avoid name crashes. The name of
+    the parallel reader is now vtkNewPOpenFOAMReader.
 
 7. To do
 ========

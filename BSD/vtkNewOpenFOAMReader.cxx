@@ -119,12 +119,6 @@
 // for isalnum() / isspace() / isdigit()
 #include <ctype.h>
 
-#if VTK_FOAMFILE_OMIT_CRCCHECK
-uLong ZEXPORT crc32(uLong, const Bytef *, uInt)
-{ return 0; }
-#endif
-
-#if defined(POpenFOAMReaderPlugin_EXPORTS)
 // avoid name crashes with the builtin reader
 #define vtkFoamArrayVector vtkNewFoamArrayVector
 #define vtkFoamError vtkNewFoamError
@@ -136,6 +130,10 @@ uLong ZEXPORT crc32(uLong, const Bytef *, uInt)
 #define vtkFoamEntryValue vtkNewFoamEntryValue
 #define vtkFoamEntry vtkNewFoamEntry
 #define vtkFoamDict vtkNewFoamDict
+
+#if VTK_FOAMFILE_OMIT_CRCCHECK
+uLong ZEXPORT crc32(uLong, const Bytef *, uInt)
+{ return 0; }
 #endif
 
 vtkCxxRevisionMacro(vtkNewOpenFOAMReader, "$Revision: 1.16 $");

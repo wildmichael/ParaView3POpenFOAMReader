@@ -58,8 +58,10 @@ public:
   // Set and get case type. 0 = decomposed case, 1 = reconstructed case.
   void SetCaseType(const int t);
   vtkGetMacro(CaseType, caseType);
+
   // Description:
-  // Set and get the controller.
+  // Set and get the communication object used to exchange metadata
+  // between the processes.
   virtual void SetController(vtkMultiProcessController *);
   vtkGetObjectMacro(Controller, vtkMultiProcessController);
 

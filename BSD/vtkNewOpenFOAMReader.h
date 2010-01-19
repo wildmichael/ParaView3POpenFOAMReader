@@ -46,9 +46,8 @@
 
 #include "vtkMultiBlockDataSetAlgorithm.h"
 
-#if defined(POpenFOAMReaderPlugin_EXPORTS)
+// avoid name crash with the builtin reader
 #define vtkOpenFOAMReaderPrivate vtkNewOpenFOAMReaderPrivate
-#endif
 
 class vtkCollection;
 class vtkCharArray;
