@@ -62,7 +62,6 @@ gf.SetInputConnection(0, reader.GetOutputPort(0))
 # Create and setup the mapper
 mapper = vtk.vtkPolyDataMapper()
 mapper.SetInputConnection(gf.GetOutputPort())
-mapper.SetScalarRange(0.0, 1.0) # Set tentative scalar range for color mapping
 mapper.CreateDefaultLookupTable() # Use default color lookup table
 mapper.SetScalarModeToUseCellFieldData() # Use cell data for color mapping
 mapper.SelectColorArray(fieldName) # Specify array name used for color mapping
@@ -90,7 +89,12 @@ for stepI in range(nTimeSteps):
   timeValue = outInfo.Get(timeStepsKey, stepI) # Get the stepI-th time value
   print 'Time step = ', stepI, ', Time value = ', timeValue
   exe.SetUpdateTimeStep(0, timeValue) # Set the reader time to timeValue
-  reader.Modified() # Force reading
-  renWin.Render() # Render
+  reader.Modified() # Reading is triggered upon mapper.Update()
+  # Force reading now. If automatic ranging is not necessary, this can
+  # be omitted as well.
+  mapper.Update()
+  # Automatically set the color range. Note that the array is not
+  # available until mapper.Update() is executed.
   mapper.SetScalarRange(
-      gf.GetOutput().GetCellData().GetArray(fieldName).GetRange()) # Reset range
+      gf.GetOutput().GetCellData().GetArray(fieldName).GetRange())
+  renWin.Render() # Render
