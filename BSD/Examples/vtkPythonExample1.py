@@ -13,8 +13,9 @@
 
 # A simple VTK-Python scripting example for use with vtkPOpenFOAMReader.
 #
-# Set current directory to the case directory and animate through all
-# available time steps by coloring the mesh with the specified field.
+# Synopsis: Set current directory to the case directory and animate
+#   through all available time steps by coloring the mesh with the
+#   specified field.
 #
 # Usage: vtkPythonExample1.py fieldName caseType
 #   where
@@ -42,8 +43,9 @@ except AttributeError:
   reader = vtk.vtkPOpenFOAMReader() # VTK 5.5-cvs now has the reader
 # SetFileName(): Basically, only the path part of the given file name
 # string matters to the reader, i.e.:
-#  * The specified file name does _not_ have to really exist. Thus the
-#    file name can even be a whitespace (as shown in this example).
+#  * The specified file does _not_ have to really exist, nor does its
+#    name have to end with the '.foam' extension. Thus the file name
+#    can even be a whitespace (as shown in this example).
 #  * If no prepending path is present in the given string (as shown in
 #    this example), the current directory is regarded as the case
 #    directory.
