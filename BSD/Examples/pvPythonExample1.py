@@ -26,7 +26,7 @@
 #   pvPythonExample1.py alpha1 0
 
 from paraview.simple import *
-import sys, time
+import sys
 
 if (len(sys.argv) < 3):
   print 'Usage: %s fieldName caseType' % sys.argv[0]
