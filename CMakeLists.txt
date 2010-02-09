@@ -1,6 +1,6 @@
 #/*=========================================================================
 #
-#    Copyright (c) 2009 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
+#    Copyright (c) 2009-2010 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
 #    All rights reserved.
 #
 #    This software is distributed WITHOUT ANY WARRANTY; without even
@@ -27,7 +27,8 @@ IF(NOT INSOURCE_PLUGIN)
 
   IF(PARAVIEW_LIBRARY_DIRS)
     IF(CMAKE_INSTALL_PREFIX STREQUAL "/usr/local"
-        OR CMAKE_INSTALL_PREFIX STREQUAL "C:/Program Files/Project")
+        OR CMAKE_INSTALL_PREFIX STREQUAL "C:/Program Files/Project"
+        OR CMAKE_INSTALL_PREFIX STREQUAL "C:/Program Files (x86)/Project")
       IF(APPLE)
         SET(CMAKE_INSTALL_PREFIX "${PARAVIEW_LIBRARY_DIRS}/Plugins")
       ELSEIF(DEFINED CMAKE_BUILD_TYPE)

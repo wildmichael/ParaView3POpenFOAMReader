@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Visualization Toolkit
-  Module:    $RCSfile: vtkOpenFOAMReader.h,v $
+  Module:    $RCSfile: vtkNewOpenFOAMReader.h,v $
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -12,7 +12,7 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkNewOpenFOAMReader - reads a dataset in OpenFOAM format
+// .NAME vtkNewOpenFOAMReader - reads a dataset in OpenFOAM(R) format
 // .SECTION Description
 // vtkNewOpenFOAMReader creates a multiblock dataset. It reads mesh
 // information and time dependent data.  The polyMesh folders contain
@@ -23,22 +23,31 @@
 // Thanks to Terry Jordan of SAIC at the National Energy
 // Technology Laboratory who developed this class.
 // Please address all comments to Terry Jordan (terry.jordan@sa.netl.doe.gov).
-// GUI Based selection of mesh regions and fields available in the case,
-// minor bug fixes, strict memory allocation checks,
-// minor performance enhancements by Philippose Rajan (sarith@rocketmail.com).
-// Token-based FoamFile format lexer/parser,
-// performance/stability/compatibility enhancements, gzipped file
-// support, lagrangian field support, variable timestep support,
-// builtin cell-to-point filter, pointField support, polyhedron
-// decomposition support, OF 1.5 extended format support, multiregion
-// support, old mesh format support, parallelization support for
-// decomposed cases in conjunction with vtkPOpenFOAMReader, et. al. by
-// Takuya Oshima of Niigata University, Japan (oshima@eng.niigata-u.ac.jp).
+// GUI Based selection of mesh regions and fields available in the
+// case, minor bug fixes, strict memory allocation checks, minor
+// performance enhancements by Philippose Rajan
+// (sarith@rocketmail.com).
+// Token-based FoamFile format lexer / parser, performance / stability
+// / compatibility enhancements, gzipped file support, lagrangian
+// field support, variable timestep support, builtin cell-to-point
+// filter, pointField support, polyhedron decomposition support, OF
+// 1.5 extended format support, multiregion support, old mesh format
+// support, parallelization support for decomposed cases in
+// conjunction with vtkPOpenFOAMReader, et. al. by Takuya Oshima of
+// Niigata University, Japan (oshima@eng.niigata-u.ac.jp).
+// OPENFOAM(R) is a registered trade mark of OpenCFD Limited, the
+// producer of the OpenFOAM software and owner of the OPENFOAM(R) and
+// OpenCFD(R) trade marks. This code is not approved or endorsed by
+// OpenCFD Limited.
+
 
 #ifndef __vtkNewOpenFOAMReader_h
 #define __vtkNewOpenFOAMReader_h
 
 #include "vtkMultiBlockDataSetAlgorithm.h"
+
+// avoid name crash with the builtin reader
+#define vtkOpenFOAMReaderPrivate vtkNewOpenFOAMReaderPrivate
 
 class vtkCollection;
 class vtkCharArray;
@@ -46,9 +55,6 @@ class vtkDataArraySelection;
 class vtkDoubleArray;
 class vtkStdString;
 class vtkStringArray;
-
-class vtkOpenFOAMReaderPrivate;
-
 
 class
 #if !defined(POpenFOAMReaderPlugin_EXPORTS)
@@ -230,21 +236,25 @@ public:
   vtkGetMacro(ReadZones, int);
   vtkBooleanMacro(ReadZones, int);
 
+  // Description:
+  // Set to indicate internal information (metadata) should be
+  // refreshed next time RequestInformation() is executed.
   void SetRefresh() { this->Refresh = true; this->Modified(); }
 
-  void SetParent(vtkNewOpenFOAMReader *parent) { this->Parent = parent; }
-  //BTX
-  int MakeInformationVector(vtkInformationVector *, const vtkStdString &);
-  //ETX
-  bool SetTimeValue(const double);
-  vtkDoubleArray *GetTimeValues();
-  int MakeMetaDataAtTimeStep(const bool);
+protected:
+  vtkNewOpenFOAMReader();
+  ~vtkNewOpenFOAMReader();
+  int RequestInformation(vtkInformation *, vtkInformationVector **,
+    vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **,
+    vtkInformationVector *);
 
   //BTX
   friend class vtkOpenFOAMReaderPrivate;
+  friend class vtkNewPOpenFOAMReader;
   //ETX
 
-protected:
+private:
   // refresh flag
   bool Refresh;
 
@@ -290,13 +300,13 @@ protected:
 
   // preserved old information
   vtkStdString *FileNameOld;
-  int ListTimeStepsByControlDictOld;
   int CreateCellToPointOld;
   int DecomposePolyhedraOld;
   int PositionsIsIn13FormatOld;
   int IsSinglePrecisionBinaryOld;
-  int AddDimensionsToArrayNamesOld;
   int ReadZonesOld;
+  int ListTimeStepsByControlDictOld;
+  int AddDimensionsToArrayNamesOld;
 
   // paths to Lagrangians
   vtkStringArray *LagrangianPaths;
@@ -306,21 +316,6 @@ protected:
   // index of the active reader
   int CurrentReaderIndex;
 
-  vtkNewOpenFOAMReader();
-  ~vtkNewOpenFOAMReader();
-  int RequestInformation(vtkInformation *, vtkInformationVector **,
-    vtkInformationVector *);
-  int RequestData(vtkInformation *, vtkInformationVector **,
-    vtkInformationVector *);
-
-  void CreateCasePath(vtkStdString &, vtkStdString &);
-  void SetTimeInformation(vtkInformationVector *, vtkDoubleArray *);
-  void GetRegions(vtkStringArray *, const vtkStdString &);
-  void CreateCharArrayFromString(vtkCharArray *, const char *, vtkStdString &);
-  void UpdateStatus();
-  void UpdateProgress(double);
-
-private:
   vtkNewOpenFOAMReader *Parent;
 
   vtkNewOpenFOAMReader(const vtkNewOpenFOAMReader&);  // Not implemented.
@@ -333,7 +328,18 @@ private:
   void DisableAllSelectionArrays(vtkDataArraySelection *);
   void EnableAllSelectionArrays(vtkDataArraySelection *);
 
+  void SetParent(vtkNewOpenFOAMReader *parent) { this->Parent = parent; }
+  vtkDoubleArray *GetTimeValues();
+  bool SetTimeValue(const double);
   void AddSelectionNames(vtkDataArraySelection *, vtkStringArray *);
+  int MakeInformationVector(vtkInformationVector *, const vtkStdString &);
+  int MakeMetaDataAtTimeStep(const bool);
+  void CreateCasePath(vtkStdString &, vtkStdString &);
+  void SetTimeInformation(vtkInformationVector *, vtkDoubleArray *);
+  void GetRegions(vtkStringArray *, const vtkStdString &);
+  void CreateCharArrayFromString(vtkCharArray *, const char *, vtkStdString &);
+  void UpdateStatus();
+  void UpdateProgress(double);
 };
 
 #endif

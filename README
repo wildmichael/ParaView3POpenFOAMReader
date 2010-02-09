@@ -1,4 +1,4 @@
-Parallelized Native OpenFOAM(R) Reader for ParaView 3.6/3.7 version 20090920
+Parallelized Native OpenFOAM(R) Reader for ParaView 3.6/3.7 version 2010MMDD
 
 This reader is a modified version of the native reader included in
 ParaView 3.3 which is an original work of Terry Jordan.
@@ -316,22 +316,13 @@ OpenCFD Limited.
      serial or in builtin mode, the Clean to Grid filter can be used
      in order to remove internal processor boundaries.
 
-  6. In order to run Stream Tracer when in parallel, a pvserver
-     process should be assigned to each decomposed mesh region, since
-     the tracer can handle inter-server process boundaries but cannot
-     for processor mesh region boundaries. For example if a case has
-     four decomposed regions, four pvserver processes should be
-     used. On the other hand, when in serial Clean to Grid can be used
-     in order to remove the region boundaries as noted in 5. If none
-     of the two applies, the streamlines will stop at appended region
-     boundaries.
-
-     Also, beware that Stream Tracer may crash pvservers if more
-     pvservers are run than the number of decompsed regions. The cause
-     of the problem is not tracked down yet, but so far the developer
+  6. Beware that Stream Tracer may crash pvservers if more pvservers
+     are run than the number of decompsed regions. The cause of the
+     problem has not been tracked down yet, but so far the developer
      is regarding it is not in the reader but in ParaView because the
      crash can be reproduced with another reader as well. The problem
-     was reported as bug #9787 (http://paraview.org/Bug/view.php?id=9787).
+     was reported as bug #9787
+     (http://paraview.org/Bug/view.php?id=9787).
 
   7. The reader does not output processor boundary patches of
      decomposed regions. In order to see the processor patches, each
@@ -354,6 +345,15 @@ OpenCFD Limited.
   - Skip appnding datasets when possible (performance improvement).
 
   - Added support for building as in-source plugins.
+
+  - Dropped builtin support for ParaView 3.6.1 (but building as
+    plugins should still work).
+
+  - Added ParaView 3.6.2 support.
+
+  - Now that the reader is in ParaView 3.7-cvs and VTK 5.5-cvs, class
+    names has been changed in order to avoid name crashes. The name of
+    the parallel reader is now vtkNewPOpenFOAMReader.
 
 
 7. To do
@@ -392,4 +392,4 @@ OpenCFD Limited.
 
   - Masashi Imano, for testing the code.
 
-/Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>, Sep. 20, 2009
+/Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>, MM. DD, 2010

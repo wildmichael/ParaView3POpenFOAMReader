@@ -1,6 +1,6 @@
 #/*=========================================================================
 #
-#    Copyright (c) 2008-2009 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
+#    Copyright (c) 2008-2010 Takuya OSHIMA <oshima@eng.niigata-u.ac.jp>.
 #    All rights reserved.
 #    See License_v1.2.txt for details.
 #
@@ -55,24 +55,23 @@ IF(PARAVIEW_VERSION VERSION_GREATER "3.6")
     POpenFOAMReaderPlugin "1.0"
     REQUIRED_ON_SERVER
     SERVER_MANAGER_XML POpenFOAMReaderSM.xml
-    SERVER_MANAGER_SOURCES vtkNewOpenFOAMReader.cxx vtkPOpenFOAMReader.cxx
+    SERVER_MANAGER_SOURCES vtkNewOpenFOAMReader.cxx vtkNewPOpenFOAMReader.cxx
     )
 ELSE()
   ADD_PARAVIEW_PLUGIN(
     POpenFOAMReaderPlugin "1.0"
     SERVER_MANAGER_XML POpenFOAMReaderSM.xml
-    SERVER_MANAGER_SOURCES vtkNewOpenFOAMReader.cxx vtkPOpenFOAMReader.cxx
+    SERVER_MANAGER_SOURCES vtkNewOpenFOAMReader.cxx vtkNewPOpenFOAMReader.cxx
     )
 ENDIF()
 
 # Set installation destination
 
 IF(NOT INSOURCE_PLUGIN)
-  IF(WIN32)
-    INSTALL(TARGETS POpenFOAMReaderPlugin RUNTIME
-      DESTINATION "${CMAKE_INSTALL_PREFIX}")
-  ELSE()
-    INSTALL(TARGETS POpenFOAMReaderPlugin LIBRARY
-      DESTINATION "${CMAKE_INSTALL_PREFIX}")
-  ENDIF()
+  # ParaView 3.6.2 has been modified after release so that plugins are
+  # built without manifests if MSVC is used. With the modification
+  # there seems to be no way to tell exactly whether plugins are built
+  # as SHARED or MODULE so there seems to be no way to tell whether
+  # RUNTIME or LIBRARY target should be specified either.
+  INSTALL(TARGETS POpenFOAMReaderPlugin DESTINATION "${CMAKE_INSTALL_PREFIX}")
 ENDIF()

@@ -16,19 +16,25 @@
 // Technology Laboratory who developed this class.
 // Please address all comments to Terry Jordan (terry.jordan@sa.netl.doe.gov)
 //
-// Token-based FoamFile format lexer/parser,
-// performance/stability/compatibility enhancements, gzipped file
-// support, lagrangian field support, variable timestep support,
-// builtin cell-to-point filter, pointField support, polyhedron
-// decomposition support, OF 1.5 extended format support, multiregion
-// support, old mesh format support, parallelization support for
-// decomposed cases in conjunction with vtkPOpenFOAMReader, et. al. by
-// Takuya Oshima of Niigata University, Japan (oshima@eng.niigata-u.ac.jp)
+// Token-based FoamFile format lexer / parser, performance / stability
+// / compatibility enhancements, gzipped file support, lagrangian
+// field support, variable timestep support, builtin cell-to-point
+// filter, pointField support, polyhedron decomposition support, OF
+// 1.5 extended format support, multiregion support, old mesh format
+// support, parallelization support for decomposed cases in
+// conjunction with vtkPOpenFOAMReader, et. al. by Takuya Oshima of
+// Niigata University, Japan (oshima@eng.niigata-u.ac.jp)
 //
 // * GUI Based selection of mesh regions and fields available in the case
 // * Minor bug fixes / Strict memory allocation checks
 // * Minor performance enhancements
 // by Philippose Rajan (sarith@rocketmail.com)
+//
+// OPENFOAM(R) is a registered trade mark of OpenCFD Limited, the
+// producer of the OpenFOAM software and owner of the OPENFOAM(R) and
+// OpenCFD(R) trade marks. This code is not approved or endorsed by
+// OpenCFD Limited.
+
 
 // Hijack the CRC routine of zlib to omit CRC check for gzipped files
 // (on OSes other than Windows where the mechanism doesn't work due
@@ -112,6 +118,18 @@
 #include <math.h>
 // for isalnum() / isspace() / isdigit()
 #include <ctype.h>
+
+// avoid name crashes with the builtin reader
+#define vtkFoamArrayVector vtkNewFoamArrayVector
+#define vtkFoamError vtkNewFoamError
+#define vtkFoamToken vtkNewFoamToken
+#define vtkFoamFileStack vtkNewFoamFileStack
+#define vtkFoamFile vtkNewFoamFile
+#define vtkFoamIOobject vtkNewFoamIOobject
+#define vtkFoamReadValue vtkNewFoamReadValue
+#define vtkFoamEntryValue vtkNewFoamEntryValue
+#define vtkFoamEntry vtkNewFoamEntry
+#define vtkFoamDict vtkNewFoamDict
 
 #if VTK_FOAMFILE_OMIT_CRCCHECK
 uLong ZEXPORT crc32(uLong, const Bytef *, uInt)
@@ -574,6 +592,18 @@ public:
   VTK_TEMPLATE_SPECIALIZE float To<float>() const;
   VTK_TEMPLATE_SPECIALIZE double To<double>() const;
 #endif
+
+  // workaround for SunOS-CC5.6-dbg
+  int ToInt() const
+  {
+    return this->Int;
+  }
+
+  // workaround for SunOS-CC5.6-dbg
+  float ToFloat() const
+  {
+    return this->Type == LABEL ? this->Int : this->Double;
+  }
 
   bool IsWordOrString() const
   {
@@ -3966,7 +3996,9 @@ void vtkFoamEntry::Read(vtkFoamIOobject& io)
           if (lastValue.Dictionary().GetType() == vtkFoamToken::LABEL)
             {
             const int asize = secondLastValue.To<int>();
-            const int value = lastValue.Dictionary().GetToken().To<int>();
+            // not using templated To<int>() for workarounding an error
+            // on SunOS-CC5.6-dbg
+            const int value = lastValue.Dictionary().GetToken().ToInt();
             // delete last two values
             delete this->Superclass::back();
             this->Superclass::pop_back();
@@ -3979,7 +4011,9 @@ void vtkFoamEntry::Read(vtkFoamIOobject& io)
           else if (lastValue.Dictionary().GetType() == vtkFoamToken::SCALAR)
             {
             const int asize = secondLastValue.To<int>();
-            const float value = lastValue.Dictionary().GetToken().To<float>();
+            // not using templated To<float>() for workarounding an error
+            // on SunOS-CC5.6-dbg
+            const float value = lastValue.Dictionary().GetToken().ToFloat();
             // delete last two values
             delete this->Superclass::back();
             this->Superclass::pop_back();
@@ -8929,6 +8963,9 @@ void vtkNewOpenFOAMReader::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "AddDimensionsToArrayNames: "
       << this->AddDimensionsToArrayNames << endl;
 
+  os << indent << "Case Path: \n";
+  this->CasePath->PrintSelf(os, indent.GetNextIndent());
+
   this->Readers->InitTraversal();
   vtkObject *reader;
   while ((reader = this->Readers->GetNextItemAsObject()) != NULL)
@@ -8937,6 +8974,48 @@ void vtkNewOpenFOAMReader::PrintSelf(ostream& os, vtkIndent indent)
     reader->PrintSelf(os, indent.GetNextIndent());
     }
 
+  os << indent << "Patch Data Array Selection: \n";
+  this->PatchDataArraySelection->PrintSelf(os, indent.GetNextIndent());
+  os << indent << "Cell Data Array Selection: \n";
+  this->CellDataArraySelection->PrintSelf(os, indent.GetNextIndent());
+  os << indent << "Point Data Array Selection: \n";
+  this->PointDataArraySelection->PrintSelf(os, indent.GetNextIndent());
+  os << indent << "Lagrangian Data Array Selection: \n";
+  this->LagrangianDataArraySelection->PrintSelf(os, indent.GetNextIndent());
+
+  os << indent << "Patch Selection MTime Old: "
+    << this->PatchSelectionMTimeOld << endl;
+  os << indent << "Cell Selection MTime Old: "
+    << this->CellSelectionMTimeOld << endl;
+  os << indent << "Point Selection MTime Old: "
+    << this->PointSelectionMTimeOld << endl;
+  os << indent << "Lagrangian Selection MTime Old: "
+    << this->LagrangianSelectionMTimeOld << endl;
+
+  os << indent << "FileNameOld: " << (this->FileNameOld ? *this->FileNameOld :
+      vtkStdString()) << endl;
+  os << indent << "CreateCellToPointOld: " << this->CreateCellToPointOld
+      << endl;
+  os << indent << "DecomposePolyhedraOld: " << this->DecomposePolyhedraOld
+      << endl;
+  os << indent << "PositionsIsIn13FormatOld: " << this->PositionsIsIn13FormatOld
+      << endl;
+  os << indent << "IsSinglePrecisionBinaryOld: "
+      << this->IsSinglePrecisionBinaryOld << endl;
+  os << indent << "ReadZonesOld: " << this->ReadZonesOld << endl;
+  os << indent << "ListTimeStepsByControlDictOld: "
+      << this->ListTimeStepsByControlDictOld << endl;
+  os << indent << "AddDimensionsToArrayNamesOld: "
+      << this->AddDimensionsToArrayNamesOld << endl;
+
+  os << indent << "Lagrangian Paths: \n";
+  this->LagrangianPaths->PrintSelf(os, indent.GetNextIndent());
+
+  os << indent << "Number Of Readers: " << this->NumberOfReaders << endl;
+  os << indent << "Current Reader Index: " << this->CurrentReaderIndex << endl;
+
+  os << indent << "Parent reader instance: "
+      << static_cast<void *>(this->Parent) << endl;
   return;
 }
 
@@ -9149,6 +9228,8 @@ int vtkNewOpenFOAMReader::RequestData(vtkInformation *vtkNotUsed(request), vtkIn
 void vtkNewOpenFOAMReader::SetTimeInformation(vtkInformationVector *outputVector,
     vtkDoubleArray *timeValues)
 {
+  // the length of the time value information array should not be zero
+  // -- otherwise ParaView will crash.
   if (timeValues->GetNumberOfTuples() > 0)
     {
     outputVector->GetInformationObject(0)->Set(vtkStreamingDemandDrivenPipeline::TIME_STEPS(),
@@ -9157,13 +9238,6 @@ void vtkNewOpenFOAMReader::SetTimeInformation(vtkInformationVector *outputVector
     double timeRange[2];
     timeRange[0] = timeValues->GetValue(0);
     timeRange[1] = timeValues->GetValue(timeValues->GetNumberOfTuples() - 1);
-    outputVector->GetInformationObject(0)->Set(vtkStreamingDemandDrivenPipeline::TIME_RANGE(), timeRange, 2);
-    }
-  else
-    {
-    double timeRange[2];
-    timeRange[0] = timeRange[1] = 0.0;
-    outputVector->GetInformationObject(0)->Set(vtkStreamingDemandDrivenPipeline::TIME_STEPS(), timeRange, 0);
     outputVector->GetInformationObject(0)->Set(vtkStreamingDemandDrivenPipeline::TIME_RANGE(), timeRange, 2);
     }
 }
@@ -9221,20 +9295,20 @@ int vtkNewOpenFOAMReader::MakeInformationVector(
     return 0;
     }
 
-  if (masterReader->GetTimeValues()->GetNumberOfTuples() == 0)
-    {
-    vtkErrorMacro(<< "Case " << casePath.c_str()
-        << " contains no timestep data.");
-    masterReader->Delete();
-    return 0;
-    }
-
-  this->Readers->AddItem(masterReader);
-
   if (outputVector != NULL)
     {
     this->SetTimeInformation(outputVector, masterReader->GetTimeValues());
     }
+
+  if (masterReader->GetTimeValues()->GetNumberOfTuples() == 0)
+    {
+    vtkWarningMacro(<< "Case " << casePath.c_str()
+        << " contains no timestep data.");
+    masterReader->Delete();
+    return 1;
+    }
+
+  this->Readers->AddItem(masterReader);
 
   // search subregions under constant subdirectory
   vtkStringArray *regionNames = vtkStringArray::New();
